@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence xmlns="http://java.sun.com/xml/ns/persistence"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd"
+             version="2.0">
+
+    <persistence-unit name="MinhaUnidadePU" transaction-type="RESOURCE_LOCAL">
+        <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
+        <exclude-unlisted-classes>false</exclude-unlisted-classes>
+
+        <!-- Suas classes de entidade mapeadas devem ser declaradas aqui -->
+        <class>model.Cliente</class>
+        <class>model.Automovel</class>
+
+        <properties>
+            <!-- Driver de conexão do MySQL -->
+            <property name="jakarta.persistence.jdbc.driver" value="com.mysql.cj.jdbc.Driver"/>
+            <!-- URL de conexão apontando para o seu SGBD e o nome do banco -->
+            <property name="jakarta.persistence.jdbc.url" value="jdbc:mysql://localhost/Locadora"/>
+            <!-- Credenciais do banco de dados -->
+            <property name="jakarta.persistence.jdbc.user" value="lukakoTeste"/>
+            <property name="jakarta.persistence.jdbc.password" value="Lukako@123"/>
+            <property name="jakarta.persistence.schema-generation.database.action" value="create"/>
+        </properties>
+    </persistence-unit>
+</persistence>
