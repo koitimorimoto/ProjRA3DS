@@ -2,7 +2,9 @@ package com.example.projra3ds.facade;
 
 import com.example.projra3ds.model.Player;
 import com.example.projra3ds.model.Team;
+import com.example.projra3ds.model.TeamLineup;
 import com.example.projra3ds.service.PlayerService;
+import com.example.projra3ds.service.TeamLineupService;
 import com.example.projra3ds.service.TeamService;
 
 import java.util.List;
@@ -10,14 +12,17 @@ import java.util.List;
 public class ManagementFacade {
     private final PlayerService playerService;
     private final TeamService teamService;
+    private final TeamLineupService teamLineupService;
 
     public ManagementFacade() {
-        this(new PlayerService(), new TeamService());
+        this(new PlayerService(), new TeamService(), new TeamLineupService());
     }
 
-    ManagementFacade(PlayerService playerService, TeamService teamService) {
+    ManagementFacade(PlayerService playerService, TeamService teamService,
+                     TeamLineupService teamLineupService) {
         this.playerService = playerService;
         this.teamService = teamService;
+        this.teamLineupService = teamLineupService;
     }
 
     public Player createPlayer(String name, int finishing, int goalkeeping, Long teamId) {
@@ -70,5 +75,13 @@ public class ManagementFacade {
 
     public void deleteTeam(Long id) {
         teamService.deleteTeam(id);
+    }
+
+    public TeamLineup findLineup(Long teamId) {
+        return teamLineupService.findByTeamId(teamId);
+    }
+
+    public TeamLineup saveLineup(Long teamId, List<Long> batterIds, Long goalkeeperId) {
+        return teamLineupService.save(teamId, batterIds, goalkeeperId);
     }
 }

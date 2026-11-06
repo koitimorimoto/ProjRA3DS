@@ -1,6 +1,9 @@
 # Maven
 /target/
 
+# Testes locais
+/src/test/
+
 # Credenciais locais. Mantenha .env.example versionado.
 .env
 .env.*

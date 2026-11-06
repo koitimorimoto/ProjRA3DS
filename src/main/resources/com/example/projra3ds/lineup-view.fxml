@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/21"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.example.projra3ds.controller.LineupController"
+      spacing="10">
+    <padding>
+        <Insets top="16" right="16" bottom="16" left="16"/>
+    </padding>
+    <HBox spacing="8" alignment="CENTER_LEFT">
+        <Label text="Time:"/>
+        <ComboBox fx:id="teamCombo" prefWidth="240" promptText="Selecione um time"/>
+        <Button text="Atualizar" onAction="#refresh"/>
+    </HBox>
+    <HBox spacing="12" VBox.vgrow="ALWAYS">
+        <VBox spacing="8" HBox.hgrow="ALWAYS">
+            <Label text="Elenco do time"/>
+            <ListView fx:id="rosterList" VBox.vgrow="ALWAYS"/>
+            <Button text="Adicionar como batedor" onAction="#addBatter"/>
+        </VBox>
+        <VBox spacing="8" HBox.hgrow="ALWAYS">
+            <Label text="Ordem dos batedores (primeiro ao último)"/>
+            <ListView fx:id="batterList" VBox.vgrow="ALWAYS"/>
+            <HBox spacing="8">
+                <Button text="Subir" onAction="#moveBatterUp"/>
+                <Button text="Descer" onAction="#moveBatterDown"/>
+                <Button text="Remover" onAction="#removeBatter"/>
+            </HBox>
+        </VBox>
+        <VBox spacing="8" prefWidth="220">
+            <Label text="Goleiro titular"/>
+            <ComboBox fx:id="goalkeeperCombo" prefWidth="200" promptText="Selecione o goleiro"/>
+            <Label text="O goleiro também pode constar na lista de batedores." wrapText="true"/>
+        </VBox>
+    </HBox>
+    <HBox spacing="8" alignment="CENTER_LEFT">
+        <Button fx:id="saveButton" text="Salvar escalação" onAction="#saveLineup" disable="true"/>
+        <Label fx:id="statusLabel" wrapText="true" HBox.hgrow="ALWAYS"/>
+    </HBox>
+</VBox>

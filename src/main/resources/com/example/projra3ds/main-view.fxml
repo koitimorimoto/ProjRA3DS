@@ -15,5 +15,11 @@
         <Tab fx:id="teamsTab" text="Times">
             <fx:include fx:id="teamsView" source="teams-view.fxml"/>
         </Tab>
+        <Tab fx:id="lineupTab" text="Escalações">
+            <fx:include fx:id="lineupView" source="lineup-view.fxml"/>
+        </Tab>
+        <Tab fx:id="matchTab" text="Partida">
+            <fx:include fx:id="matchView" source="match-view.fxml"/>
+        </Tab>
     </tabs>
 </TabPane>

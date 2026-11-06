@@ -12,9 +12,17 @@ public class MainController {
     @FXML
     private Tab teamsTab;
     @FXML
+    private Tab lineupTab;
+    @FXML
+    private Tab matchTab;
+    @FXML
     private PlayerController playersViewController;
     @FXML
     private TeamController teamsViewController;
+    @FXML
+    private LineupController lineupViewController;
+    @FXML
+    private MatchController matchViewController;
 
     @FXML
     private void initialize() {
@@ -23,8 +31,16 @@ public class MainController {
                 teamsViewController.refresh();
             } else if (selected == playersTab) {
                 playersViewController.refresh();
+            } else if (selected == lineupTab) {
+                lineupViewController.refresh();
+            } else if (selected == matchTab) {
+                matchViewController.refresh();
             }
         });
         playersViewController.refresh();
+    }
+
+    public void shutdown() {
+        matchViewController.shutdown();
     }
 }

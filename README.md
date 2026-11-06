@@ -1,6 +1,6 @@
 # Simulador de disputa de pênaltis
 
-Aplicação desktop em JavaFX: cadastro e gerenciamento de jogadores e times. Inclui associação, transferência e desvinculação de jogadores.
+Aplicação desktop em JavaFX: cadastro e gerenciamento de jogadores e times, escalação ordenada de batedores e goleiro, e disputa de pênaltis contra a CPU.
 
 ## Requisitos
 
@@ -51,7 +51,17 @@ O Maven Wrapper já está incluído no projeto; não é necessário instalar Mav
 
    Não coloque aspas nos valores. O arquivo `.env` é local, ignorado pelo Git, e não deve ser enviado aos colegas. Cada pessoa cria o seu.
 
-O banco configurado é `simulador_penaltis`. O EclipseLink cria as tabelas necessárias e estende o esquema ao iniciar a aplicação, sem apagar as tabelas existentes. O usuário da aplicação precisa de permissões nesse banco para criar/alterar as tabelas.
+O banco configurado é `simulador_penaltis`. Ao iniciar, a aplicação cria as tabelas ausentes usando `CREATE TABLE IF NOT EXISTS`, preservando as tabelas e os dados que já existem. O usuário da aplicação precisa de permissão para criar tabelas nesse banco.
+
+## Preparar elencos e disputar uma partida
+
+1. Na aba **Times**, cadastre dois times.
+2. Na aba **Jogadores**, cadastre jogadores e associe-os ao time correspondente.
+3. Na aba **Escalações**, selecione cada time, monte a lista de batedores e use **Subir**/**Descer** para definir a ordem. Escolha também o goleiro e salve a escalação. O goleiro também pode bater.
+4. Na aba **Partida**, escolha seu time e o time da CPU e clique em **Iniciar partida**.
+5. Na sua cobrança, o eixo X se move primeiro. Clique em **Fixar X** no momento desejado; então o eixo Y começa a se mover, e o mesmo botão fixa Y. Maior Finalização deixa o movimento mais lento. Ajuste a força e clique em **Cobrar**. Na cobrança da CPU, escolha **Defender à esquerda**, **Defender no meio** ou **Defender à direita**.
+
+A disputa segue cinco cobranças por time, com encerramento antecipado quando o adversário não puder mais alcançar o placar; se empatar, continua em morte súbita. A ordem dos cobradores reinicia e se repete se um time tiver menos de cinco jogadores na lista. O andamento e os dados de cada cobrança ficam visíveis na partida atual; histórico persistente de partidas/replay será uma etapa posterior.
 
 ## Executar pelo terminal
 
@@ -62,7 +72,7 @@ Na raiz do projeto, rode:
 ./mvnw javafx:run
 ```
 
-O primeiro comando compila e executa os testes das regras de negócio sem conectar ao MySQL. O segundo inicia a interface e precisa de um `.env` válido e do MySQL em execução.
+O primeiro comando compila e executa os testes das regras de negócio e da mecânica da partida sem conectar ao MySQL. O segundo inicia a interface e precisa de um `.env` válido e do MySQL em execução.
 
 No Windows, use o wrapper correspondente:
 
@@ -93,6 +103,7 @@ Como alternativa à leitura do `.env`, é possível definir `PENALTY_DB_USER` e 
 - `model`: entidades JPA `Player` e `Team`
 - `controller`: controllers JavaFX do MVC
 - `src/main/resources/com/example/projra3ds`: Views FXML
+- `game`: motor independente da interface e registros de cada cobrança
 - `service`: validações e regras de negócio
 - `repository`: consultas e operações JPA
 - `facade`: ponto de entrada dos controllers para o gerenciamento

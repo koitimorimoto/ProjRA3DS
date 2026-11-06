@@ -5,22 +5,26 @@ import com.example.projra3ds.model.Team;
 import com.example.projra3ds.persistence.JpaTransactions;
 import com.example.projra3ds.repository.PlayerRepository;
 import com.example.projra3ds.repository.TeamRepository;
+import com.example.projra3ds.repository.TeamLineupRepository;
 
 import java.util.List;
 
 public class TeamService {
     private final TeamRepository teamRepository;
     private final PlayerRepository playerRepository;
+    private final TeamLineupRepository lineupRepository;
     private final JpaTransactions transactions;
 
     public TeamService() {
-        this(new TeamRepository(), new PlayerRepository(), new JpaTransactions());
+        this(new TeamRepository(), new PlayerRepository(),
+                new TeamLineupRepository(), new JpaTransactions());
     }
 
     TeamService(TeamRepository teamRepository, PlayerRepository playerRepository,
-                JpaTransactions transactions) {
+                TeamLineupRepository lineupRepository, JpaTransactions transactions) {
         this.teamRepository = teamRepository;
         this.playerRepository = playerRepository;
+        this.lineupRepository = lineupRepository;
         this.transactions = transactions;
     }
 
@@ -62,6 +66,8 @@ public class TeamService {
                     .orElseThrow(() -> new IllegalArgumentException("Time não encontrado."));
             List<Player> players = playerRepository.findByTeamId(entityManager, id);
             players.forEach(player -> player.setTeam(null));
+            lineupRepository.findByTeamId(entityManager, id)
+                    .ifPresent(lineup -> lineupRepository.delete(entityManager, lineup));
             entityManager.flush();
             teamRepository.delete(entityManager, team);
             return null;

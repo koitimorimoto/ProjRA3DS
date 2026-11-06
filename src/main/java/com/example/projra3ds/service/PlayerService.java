@@ -2,25 +2,30 @@ package com.example.projra3ds.service;
 
 import com.example.projra3ds.model.Player;
 import com.example.projra3ds.model.Team;
+import com.example.projra3ds.model.TeamLineup;
 import com.example.projra3ds.persistence.JpaTransactions;
 import com.example.projra3ds.repository.PlayerRepository;
 import com.example.projra3ds.repository.TeamRepository;
+import com.example.projra3ds.repository.TeamLineupRepository;
 
 import java.util.List;
 
 public class PlayerService {
     private final PlayerRepository playerRepository;
     private final TeamRepository teamRepository;
+    private final TeamLineupRepository lineupRepository;
     private final JpaTransactions transactions;
 
     public PlayerService() {
-        this(new PlayerRepository(), new TeamRepository(), new JpaTransactions());
+        this(new PlayerRepository(), new TeamRepository(),
+                new TeamLineupRepository(), new JpaTransactions());
     }
 
     PlayerService(PlayerRepository playerRepository, TeamRepository teamRepository,
-                  JpaTransactions transactions) {
+                  TeamLineupRepository lineupRepository, JpaTransactions transactions) {
         this.playerRepository = playerRepository;
         this.teamRepository = teamRepository;
+        this.lineupRepository = lineupRepository;
         this.transactions = transactions;
     }
 
@@ -45,6 +50,9 @@ public class PlayerService {
             Player player = playerRepository.findById(entityManager, id)
                     .orElseThrow(() -> new IllegalArgumentException("Jogador não encontrado."));
             Team team = findTeamOrNull(teamId, entityManager);
+            if (!sameTeam(player.getTeam(), team)) {
+                removePlayerFromLineups(player, entityManager);
+            }
             player.setName(normalizedName);
             player.setFinishing(finishing);
             player.setGoalkeeping(goalkeeping);
@@ -73,6 +81,8 @@ public class PlayerService {
         transactions.write(entityManager -> {
             Player player = playerRepository.findById(entityManager, id)
                     .orElseThrow(() -> new IllegalArgumentException("Jogador não encontrado."));
+            removePlayerFromLineups(player, entityManager);
+            entityManager.flush();
             playerRepository.delete(entityManager, player);
             return null;
         });
@@ -88,6 +98,7 @@ public class PlayerService {
             Team newTeam = teamRepository.findById(entityManager, newTeamId)
                     .orElseThrow(() -> new IllegalArgumentException("Time não encontrado."));
             if (player.getTeam() == null || !player.getTeam().getId().equals(newTeamId)) {
+                removePlayerFromLineups(player, entityManager);
                 player.setTeam(newTeam);
             }
             return null;
@@ -99,6 +110,7 @@ public class PlayerService {
             Player player = playerRepository.findById(entityManager, playerId)
                     .orElseThrow(() -> new IllegalArgumentException("Jogador não encontrado."));
             if (player.getTeam() != null) {
+                removePlayerFromLineups(player, entityManager);
                 player.setTeam(null);
             }
             return null;
@@ -127,6 +139,24 @@ public class PlayerService {
     private void validateSkill(int value, String field) {
         if (value < 0 || value > 100) {
             throw new IllegalArgumentException(field + " deve estar entre 0 e 100.");
+        }
+    }
+
+    private boolean sameTeam(Team first, Team second) {
+        if (first == null || second == null) {
+            return first == second;
+        }
+        return first.getId().equals(second.getId());
+    }
+
+    private void removePlayerFromLineups(Player player,
+                                         jakarta.persistence.EntityManager entityManager) {
+        for (TeamLineup lineup : lineupRepository.findContainingPlayer(entityManager, player)) {
+            lineup.getBatters().removeIf(batter -> batter.getId().equals(player.getId()));
+            if (lineup.getGoalkeeper() != null
+                    && lineup.getGoalkeeper().getId().equals(player.getId())) {
+                lineup.setGoalkeeper(null);
+            }
         }
     }
 }
