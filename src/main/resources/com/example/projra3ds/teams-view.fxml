@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/21"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.example.projra3ds.controller.TeamController"
+      spacing="10">
+    <padding>
+        <Insets top="16" right="16" bottom="16" left="16"/>
+    </padding>
+    <Label text="Gerencie os times cadastrados e consulte a quantidade de jogadores em cada equipe."/>
+    <TableView fx:id="teamTable" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn fx:id="nameColumn" text="Time" prefWidth="280"/>
+            <TableColumn fx:id="countryColumn" text="País / região" prefWidth="240"/>
+            <TableColumn fx:id="playerCountColumn" text="Jogadores" prefWidth="120"/>
+        </columns>
+    </TableView>
+    <HBox spacing="8">
+        <Button text="Novo time" onAction="#createTeam"/>
+        <Button text="Editar" onAction="#editTeam"/>
+        <Button text="Excluir" onAction="#deleteTeam"/>
+        <Button text="Atualizar" onAction="#refresh"/>
+    </HBox>
+</VBox>

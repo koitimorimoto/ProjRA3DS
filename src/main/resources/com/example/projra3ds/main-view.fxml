@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+
+<TabPane xmlns="http://javafx.com/javafx/21"
+         xmlns:fx="http://javafx.com/fxml/1"
+         fx:controller="com.example.projra3ds.controller.MainController"
+         fx:id="tabPane"
+         tabClosingPolicy="UNAVAILABLE">
+    <tabs>
+        <Tab fx:id="playersTab" text="Jogadores">
+            <fx:include fx:id="playersView" source="players-view.fxml"/>
+        </Tab>
+        <Tab fx:id="teamsTab" text="Times">
+            <fx:include fx:id="teamsView" source="teams-view.fxml"/>
+        </Tab>
+    </tabs>
+</TabPane>
