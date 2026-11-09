@@ -36,10 +36,12 @@ import java.util.List;
 import java.util.Optional;
 
 public class MatchController {
-    private static final double GOAL_LEFT = 82;
-    private static final double GOAL_RIGHT = 638;
-    private static final double GOAL_TOP = 28;
-    private static final double GOAL_BOTTOM = 222;
+    private static final double GOAL_LEFT_RATIO = 0.24;
+    private static final double GOAL_RIGHT_RATIO = 0.76;
+    private static final double GOAL_TOP_RATIO = 0.08;
+    private static final double GOAL_BOTTOM_RATIO = 0.43;
+    private static final double BALL_START_RATIO = 0.88;
+    private static final double SHOOTER_RUN_UP_PROGRESS = 0.28;
 
     private final ManagementFacade facade = new ManagementFacade();
     private final SimpleDoubleProperty animationProgress = new SimpleDoubleProperty(1);
@@ -381,22 +383,54 @@ public class MatchController {
         GraphicsContext graphics = goalCanvas.getGraphicsContext2D();
         double width = goalCanvas.getWidth();
         double height = goalCanvas.getHeight();
-        graphics.setFill(Color.web("#245c3b"));
+        double goalLeft = width * GOAL_LEFT_RATIO;
+        double goalRight = width * GOAL_RIGHT_RATIO;
+        double goalTop = height * GOAL_TOP_RATIO;
+        double goalBottom = height * GOAL_BOTTOM_RATIO;
+        double ballX = width / 2;
+        double ballY = height * BALL_START_RATIO;
+        double goalWidth = goalRight - goalLeft;
+        double goalHeight = goalBottom - goalTop;
+
+        graphics.setFill(Color.web("#267b36"));
         graphics.fillRect(0, 0, width, height);
 
+        for (int stripe = 0; stripe < 8; stripe++) {
+            double stripeTop = height * 0.48 + height * 0.065 * stripe;
+            graphics.setFill(stripe % 2 == 0
+                    ? Color.color(0.38, 0.72, 0.16, 0.18)
+                    : Color.color(0.08, 0.43, 0.12, 0.14));
+            graphics.fillRect(0, stripeTop, width, height * 0.065);
+        }
+
         graphics.setStroke(Color.WHITE);
-        graphics.setLineWidth(4);
-        graphics.strokeRect(GOAL_LEFT, GOAL_TOP, GOAL_RIGHT - GOAL_LEFT, GOAL_BOTTOM - GOAL_TOP);
+        graphics.setLineWidth(2);
+        double penaltyBoxLeft = width * 0.15;
+        double penaltyBoxRight = width * 0.85;
+        double penaltyBoxBottom = height * 0.64;
+        graphics.strokeLine(penaltyBoxLeft, goalBottom, penaltyBoxLeft, penaltyBoxBottom);
+        graphics.strokeLine(penaltyBoxLeft, penaltyBoxBottom, penaltyBoxRight, penaltyBoxBottom);
+        graphics.strokeLine(penaltyBoxRight, penaltyBoxBottom, penaltyBoxRight, goalBottom);
+        graphics.strokeLine(width * 0.39, goalBottom, width * 0.39, height * 0.53);
+        graphics.strokeLine(width * 0.39, height * 0.53, width * 0.61, height * 0.53);
+        graphics.strokeLine(width * 0.61, height * 0.53, width * 0.61, goalBottom);
+        graphics.setLineWidth(1.5);
+        graphics.strokeLine(width * 0.08, height * 0.55, width * 0.92, height * 0.55);
+
+        graphics.setStroke(Color.color(1, 1, 1, 0.48));
         graphics.setLineWidth(1);
-        graphics.setStroke(Color.color(1, 1, 1, 0.28));
-        for (int i = 1; i < 5; i++) {
-            double x = GOAL_LEFT + (GOAL_RIGHT - GOAL_LEFT) * i / 5.0;
-            graphics.strokeLine(x, GOAL_TOP, x, GOAL_BOTTOM);
+        for (int i = 1; i < 8; i++) {
+            double x = goalLeft + goalWidth * i / 8.0;
+            graphics.strokeLine(x, goalTop, x, goalBottom);
         }
         for (int i = 1; i < 3; i++) {
-            double y = GOAL_TOP + (GOAL_BOTTOM - GOAL_TOP) * i / 3.0;
-            graphics.strokeLine(GOAL_LEFT, y, GOAL_RIGHT, y);
+            double y = goalTop + goalHeight * i / 3.0;
+            graphics.strokeLine(goalLeft, y, goalRight, y);
         }
+
+        graphics.setStroke(Color.WHITE);
+        graphics.setLineWidth(6);
+        graphics.strokeRect(goalLeft, goalTop, goalWidth, goalHeight);
 
         double keeperX;
         if (lastAttempt != null && animationProgress.get() < 1) {
@@ -407,18 +441,34 @@ public class MatchController {
         } else {
             keeperX = width / 2;
         }
-        double keeperY = GOAL_BOTTOM - (GOAL_BOTTOM - GOAL_TOP) * 0.18;
+        double keeperY = goalBottom - goalHeight * 0.18;
         graphics.setFill(Color.web("#1976d2"));
-        graphics.fillRoundRect(keeperX - 18, keeperY - 18, 36, 36, 12, 12);
+        graphics.fillRoundRect(keeperX - 18, keeperY - 16, 36, 32, 10, 10);
+        graphics.setStroke(Color.WHITE);
+        graphics.setLineWidth(2);
+        graphics.strokeRoundRect(keeperX - 18, keeperY - 16, 36, 32, 10, 10);
 
         if (lastAttempt != null) {
             double progress = animationProgress.get();
-            double ballX = interpolate(width / 2, xToCanvas(lastAttempt.ballX()), progress);
-            double ballY = interpolate(GOAL_BOTTOM + 46, yToCanvas(lastAttempt.ballY()), progress);
+            if (progress < SHOOTER_RUN_UP_PROGRESS) {
+                drawShooter(graphics, interpolate(ballX - width * 0.16, ballX - 22,
+                        progress / SHOOTER_RUN_UP_PROGRESS), ballY);
+            }
+            double shotX = interpolate(ballX, xToCanvas(lastAttempt.ballX()), progress);
+            double shotY = interpolate(ballY, yToCanvas(lastAttempt.ballY()), progress);
             graphics.setFill(Color.WHITE);
-            graphics.fillOval(ballX - 8, ballY - 8, 16, 16);
-        } else if (match != null && !match.isFinished() && match.getNextAttackingTeamIndex() == 0
-                && aimTiming != null) {
+            graphics.fillOval(shotX - 10, shotY - 10, 20, 20);
+            graphics.setStroke(Color.web("#202020"));
+            graphics.setLineWidth(1.5);
+            graphics.strokeOval(shotX - 10, shotY - 10, 20, 20);
+        } else {
+            if (match != null && !match.isFinished()) {
+                drawShooter(graphics, ballX - width * 0.16, ballY);
+            }
+        }
+
+        if (lastAttempt == null && match != null && !match.isFinished()
+                && match.getNextAttackingTeamIndex() == 0 && aimTiming != null) {
             double targetX = xToCanvas(aimTiming.getX() * 2 - 1);
             double targetY = yToCanvas(aimTiming.getY());
             graphics.setFill(Color.web("#ffca28"));
@@ -428,16 +478,35 @@ public class MatchController {
             graphics.strokeOval(targetX - 14, targetY - 14, 28, 28);
         }
 
-        graphics.setFill(Color.WHITE);
-        graphics.fillOval(width / 2 - 7, GOAL_BOTTOM + 38, 14, 14);
+        if (lastAttempt == null) {
+            graphics.setFill(Color.WHITE);
+            graphics.fillOval(ballX - 10, ballY - 10, 20, 20);
+            graphics.setStroke(Color.web("#202020"));
+            graphics.setLineWidth(1.5);
+            graphics.strokeOval(ballX - 10, ballY - 10, 20, 20);
+        }
+    }
+
+    private void drawShooter(GraphicsContext graphics, double centerX, double centerY) {
+        graphics.setFill(Color.web("#f5f5f5"));
+        graphics.fillRect(centerX - 15, centerY - 19, 30, 38);
+        graphics.setFill(Color.web("#1565c0"));
+        graphics.fillRect(centerX - 11, centerY - 15, 22, 30);
+        graphics.setStroke(Color.WHITE);
+        graphics.setLineWidth(2);
+        graphics.strokeRect(centerX - 15, centerY - 19, 30, 38);
     }
 
     private double xToCanvas(double x) {
-        return GOAL_LEFT + (x + 1) * (GOAL_RIGHT - GOAL_LEFT) / 2;
+        double goalLeft = goalCanvas.getWidth() * GOAL_LEFT_RATIO;
+        double goalWidth = goalCanvas.getWidth() * (GOAL_RIGHT_RATIO - GOAL_LEFT_RATIO);
+        return goalLeft + (x + 1) * goalWidth / 2;
     }
 
     private double yToCanvas(double y) {
-        return GOAL_BOTTOM - y * (GOAL_BOTTOM - GOAL_TOP);
+        double goalTop = goalCanvas.getHeight() * GOAL_TOP_RATIO;
+        double goalHeight = goalCanvas.getHeight() * (GOAL_BOTTOM_RATIO - GOAL_TOP_RATIO);
+        return goalTop + (1 - y) * goalHeight;
     }
 
     private double interpolate(double from, double to, double progress) {

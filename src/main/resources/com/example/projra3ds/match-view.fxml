@@ -31,7 +31,7 @@
         <Label fx:id="scoreLabel" text="Placar: —" style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
         <Label fx:id="roundLabel" text="Configure os times e as escalações"/>
     </HBox>
-    <Canvas fx:id="goalCanvas" width="720" height="300" focusTraversable="true"/>
+    <Canvas fx:id="goalCanvas" width="900" height="390" focusTraversable="true"/>
     <Label fx:id="statusLabel" text="Cada time precisa de uma escalação com batedores em ordem e um goleiro."
            wrapText="true"/>
     <HBox spacing="12" alignment="CENTER_LEFT">
@@ -55,5 +55,5 @@
     </HBox>
     <Label text="Na sua cobrança, fixe X e depois Y com o mesmo botão; a velocidade diminui conforme a Finalização. Ajuste a força e cobre. Quando a CPU cobrar, escolha esquerda, meio ou direita."/>
     <Label text="Cobranças realizadas"/>
-    <ListView fx:id="attemptList" prefHeight="105" VBox.vgrow="ALWAYS"/>
+    <ListView fx:id="attemptList" prefHeight="80" VBox.vgrow="ALWAYS"/>
 </VBox>
