@@ -88,10 +88,6 @@ public class ManagementFacade {
         return teamService.findAllTeams();
     }
 
-    public long countPlayers(Long teamId) {
-        return teamService.countPlayers(teamId);
-    }
-
     public void deleteTeam(Long id) {
         teamService.deleteTeam(id);
     }

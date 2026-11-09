@@ -38,7 +38,7 @@ public class PlayerService {
         String normalizedName = validateName(name);
         validateSkill(finishing, "Finalização");
         validateSkill(goalkeeping, "Goleiro");
-        validateHeight(heightMeters);
+        Player.validateHeightMeters(heightMeters);
         return transactions.write(entityManager -> {
             Team team = findTeamOrNull(teamId, entityManager);
             Player player = new Player(normalizedName, finishing, goalkeeping, heightMeters);
@@ -58,7 +58,7 @@ public class PlayerService {
         validateSkill(finishing, "Finalização");
         validateSkill(goalkeeping, "Goleiro");
         if (heightMeters != null) {
-            validateHeight(heightMeters);
+            Player.validateHeightMeters(heightMeters);
         }
         return transactions.write(entityManager -> {
             Player player = playerRepository.findById(entityManager, id)
@@ -154,17 +154,8 @@ public class PlayerService {
     }
 
     private void validateSkill(int value, String field) {
-        if (value < 0 || value > 100) {
+        if (!Player.isSkillInRange(value)) {
             throw new IllegalArgumentException(field + " deve estar entre 0 e 100.");
-        }
-    }
-
-    private void validateHeight(double heightMeters) {
-        if (!Double.isFinite(heightMeters) || heightMeters < Player.MIN_HEIGHT_METERS
-                || heightMeters > Player.MAX_HEIGHT_METERS
-                || Math.abs(heightMeters * 100 - Math.rint(heightMeters * 100)) > 1e-8) {
-            throw new IllegalArgumentException(
-                    "A altura deve estar entre 1,00 m e 2,50 m, com até duas casas decimais.");
         }
     }
 

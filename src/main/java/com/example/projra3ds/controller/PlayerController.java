@@ -13,7 +13,6 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
@@ -217,12 +216,7 @@ public class PlayerController {
     private double parseHeight(String text) {
         try {
             double height = Double.parseDouble(text.trim().replace(',', '.'));
-            if (!Double.isFinite(height) || height < Player.MIN_HEIGHT_METERS
-                    || height > Player.MAX_HEIGHT_METERS
-                    || Math.abs(height * 100 - Math.rint(height * 100)) > 1e-8) {
-                throw new IllegalArgumentException(
-                        "A altura deve estar entre 1,00 m e 2,50 m, com até duas casas decimais.");
-            }
+            Player.validateHeightMeters(height);
             return height;
         } catch (NumberFormatException exception) {
             throw new IllegalArgumentException("Altura deve ser informada em metros, por exemplo 1,75.");
@@ -232,7 +226,7 @@ public class PlayerController {
     private void validateSkillInput(String text, String field) {
         try {
             int value = Integer.parseInt(text.trim());
-            if (value < 0 || value > 100) {
+            if (!Player.isSkillInRange(value)) {
                 throw new IllegalArgumentException(field + " deve estar entre 0 e 100.");
             }
         } catch (NumberFormatException exception) {
@@ -241,24 +235,8 @@ public class PlayerController {
     }
 
     private void configureTeamCombo(ComboBox<Team> combo, boolean nullable) {
-        combo.setCellFactory(list -> teamCell(nullable));
-        combo.setButtonCell(teamCell(nullable));
-    }
-
-    private ListCell<Team> teamCell(boolean nullable) {
-        return new ListCell<>() {
-            @Override
-            protected void updateItem(Team team, boolean empty) {
-                super.updateItem(team, empty);
-                if (empty) {
-                    setText(null);
-                } else if (team == null) {
-                    setText(nullable ? "Sem time" : null);
-                } else {
-                    setText(team.getName());
-                }
-            }
-        };
+        combo.setCellFactory(list -> ControllerUi.teamCell(nullable));
+        combo.setButtonCell(ControllerUi.teamCell(nullable));
     }
 
     private void loadTeams() {
@@ -269,8 +247,8 @@ public class PlayerController {
         assignTeamCombo.setValue(null);
         teamFilterCombo.setItems(FXCollections.observableArrayList(teams));
         assignTeamCombo.setItems(FXCollections.observableArrayList(teams));
-        findTeam(teams, selectedFilterId).ifPresent(teamFilterCombo::setValue);
-        findTeam(teams, selectedAssignId).ifPresent(assignTeamCombo::setValue);
+        ControllerUi.findTeam(teams, selectedFilterId).ifPresent(teamFilterCombo::setValue);
+        ControllerUi.findTeam(teams, selectedAssignId).ifPresent(assignTeamCombo::setValue);
     }
 
     private void reloadTeamChoices() {
@@ -279,13 +257,6 @@ public class PlayerController {
         } catch (IllegalArgumentException | IllegalStateException | PersistenceException exception) {
             UiMessages.showError("Não foi possível carregar os times", exception);
         }
-    }
-
-    private Optional<Team> findTeam(List<Team> teams, Long id) {
-        if (id == null) {
-            return Optional.empty();
-        }
-        return teams.stream().filter(team -> team.getId().equals(id)).findFirst();
     }
 
     private void refreshPlayers() {

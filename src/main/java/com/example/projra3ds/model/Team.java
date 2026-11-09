@@ -106,7 +106,7 @@ public class Team {
         return players;
     }
 
-    private String normalizeColor(String color, String role) {
+    public static String normalizeColor(String color, String role) {
         if (color == null || !color.matches("#[0-9a-fA-F]{6}")) {
             throw new IllegalArgumentException(
                     "A cor do " + role + " deve estar no formato #RRGGBB.");

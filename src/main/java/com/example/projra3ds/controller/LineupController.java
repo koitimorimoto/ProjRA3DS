@@ -10,12 +10,10 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 public class LineupController {
     private final ManagementFacade facade = new ManagementFacade();
@@ -36,12 +34,12 @@ public class LineupController {
 
     @FXML
     private void initialize() {
-        teamCombo.setCellFactory(list -> teamCell());
-        teamCombo.setButtonCell(teamCell());
-        rosterList.setCellFactory(list -> playerCell());
-        batterList.setCellFactory(list -> playerCell());
-        goalkeeperCombo.setCellFactory(list -> playerCell());
-        goalkeeperCombo.setButtonCell(playerCell());
+        teamCombo.setCellFactory(list -> ControllerUi.teamCell());
+        teamCombo.setButtonCell(ControllerUi.teamCell());
+        rosterList.setCellFactory(list -> ControllerUi.playerCell());
+        batterList.setCellFactory(list -> ControllerUi.playerCell());
+        goalkeeperCombo.setCellFactory(list -> ControllerUi.playerCell());
+        goalkeeperCombo.setButtonCell(ControllerUi.playerCell());
         teamCombo.valueProperty().addListener((observable, oldTeam, newTeam) -> loadSelectedTeam());
     }
 
@@ -52,7 +50,7 @@ public class LineupController {
             List<Team> teams = facade.findAllTeams();
             teamCombo.setValue(null);
             teamCombo.setItems(FXCollections.observableArrayList(teams));
-            findTeam(teams, selectedTeamId).ifPresent(teamCombo::setValue);
+            ControllerUi.findTeam(teams, selectedTeamId).ifPresent(teamCombo::setValue);
             if (teamCombo.getValue() == null && !teams.isEmpty()) {
                 teamCombo.setValue(teams.get(0));
             }
@@ -133,7 +131,7 @@ public class LineupController {
             if (lineup != null) {
                 batterList.setItems(FXCollections.observableArrayList(lineup.getBatters()));
                 if (lineup.getGoalkeeper() != null) {
-                    findPlayer(roster, lineup.getGoalkeeper().getId())
+                    ControllerUi.findPlayer(roster, lineup.getGoalkeeper().getId())
                             .ifPresent(goalkeeperCombo::setValue);
                 }
                 setStatus("Escalação carregada para " + team.getName() + ".");
@@ -158,37 +156,6 @@ public class LineupController {
         reordered.add(newIndex, player);
         batterList.setItems(FXCollections.observableArrayList(reordered));
         batterList.getSelectionModel().select(newIndex);
-    }
-
-    private Optional<Team> findTeam(List<Team> teams, Long teamId) {
-        if (teamId == null) {
-            return Optional.empty();
-        }
-        return teams.stream().filter(team -> team.getId().equals(teamId)).findFirst();
-    }
-
-    private Optional<Player> findPlayer(List<Player> players, Long playerId) {
-        return players.stream().filter(player -> player.getId().equals(playerId)).findFirst();
-    }
-
-    private ListCell<Team> teamCell() {
-        return new ListCell<>() {
-            @Override
-            protected void updateItem(Team team, boolean empty) {
-                super.updateItem(team, empty);
-                setText(empty || team == null ? null : team.getName());
-            }
-        };
-    }
-
-    private ListCell<Player> playerCell() {
-        return new ListCell<>() {
-            @Override
-            protected void updateItem(Player player, boolean empty) {
-                super.updateItem(player, empty);
-                setText(empty || player == null ? null : player.getName());
-            }
-        };
     }
 
     private void setStatus(String message) {

@@ -101,7 +101,7 @@ Como alternativa à leitura do `.env`, é possível definir `PENALTY_DB_USER` e 
 ## Organização do código
 
 - `model`: entidades JPA `Player` e `Team`
-- `controller`: controllers JavaFX do MVC
+- `controller`: controllers JavaFX do MVC e renderizador visual da partida
 - `src/main/resources/com/example/projra3ds`: Views FXML
 - `game`: motor independente da interface e registros de cada cobrança
 - `service`: validações e regras de negócio

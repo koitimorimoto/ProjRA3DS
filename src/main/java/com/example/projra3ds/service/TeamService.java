@@ -46,39 +46,34 @@ public class TeamService {
     public Team updateTeam(Long id, String name, String country) {
         String normalizedName = validateName(name);
         String normalizedCountry = normalizeCountry(country);
-        return transactions.write(entityManager -> {
-            Team team = teamRepository.findById(entityManager, id)
-                    .orElseThrow(() -> new IllegalArgumentException("Time não encontrado."));
-            ensureNameIsAvailable(normalizedName, id, entityManager);
-            team.setName(normalizedName);
-            team.setCountry(normalizedCountry);
-            return team;
-        });
+        return updateTeam(id, normalizedName, normalizedCountry, null);
     }
 
     public Team updateTeam(Long id, String name, String country,
                            String goalkeeperColor, String batterColor) {
         String normalizedName = validateName(name);
         String normalizedCountry = normalizeCountry(country);
-        Team updatedTeam = new Team(normalizedName, normalizedCountry, goalkeeperColor, batterColor);
+        Team colors = new Team(normalizedName, normalizedCountry, goalkeeperColor, batterColor);
+        return updateTeam(id, normalizedName, normalizedCountry, colors);
+    }
+
+    private Team updateTeam(Long id, String normalizedName, String normalizedCountry, Team colors) {
         return transactions.write(entityManager -> {
             Team team = teamRepository.findById(entityManager, id)
                     .orElseThrow(() -> new IllegalArgumentException("Time não encontrado."));
             ensureNameIsAvailable(normalizedName, id, entityManager);
             team.setName(normalizedName);
             team.setCountry(normalizedCountry);
-            team.setGoalkeeperColor(updatedTeam.getGoalkeeperColor());
-            team.setBatterColor(updatedTeam.getBatterColor());
+            if (colors != null) {
+                team.setGoalkeeperColor(colors.getGoalkeeperColor());
+                team.setBatterColor(colors.getBatterColor());
+            }
             return team;
         });
     }
 
     public List<Team> findAllTeams() {
         return transactions.read(teamRepository::findAll);
-    }
-
-    public long countPlayers(Long teamId) {
-        return transactions.read(entityManager -> teamRepository.countPlayers(entityManager, teamId));
     }
 
     public void deleteTeam(Long id) {

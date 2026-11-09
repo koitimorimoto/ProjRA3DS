@@ -97,13 +97,21 @@ public class Player {
     }
 
     public void setHeightMeters(double heightMeters) {
+        validateHeightMeters(heightMeters);
+        this.heightMeters = heightMeters;
+    }
+
+    public static void validateHeightMeters(double heightMeters) {
         if (!Double.isFinite(heightMeters) || heightMeters < MIN_HEIGHT_METERS
                 || heightMeters > MAX_HEIGHT_METERS
                 || Math.abs(heightMeters * 100 - Math.rint(heightMeters * 100)) > 1e-8) {
             throw new IllegalArgumentException(
                     "A altura deve estar entre 1,00 m e 2,50 m, com até duas casas decimais.");
         }
-        this.heightMeters = heightMeters;
+    }
+
+    public static boolean isSkillInRange(int skill) {
+        return skill >= 0 && skill <= 100;
     }
 
     public LocalDateTime getCreatedAt() {

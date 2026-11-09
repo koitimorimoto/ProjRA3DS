@@ -32,13 +32,6 @@ public class TeamRepository {
                 .getSingleResult() > 0;
     }
 
-    public long countPlayers(EntityManager entityManager, Long teamId) {
-        return entityManager.createQuery(
-                "SELECT COUNT(p) FROM Player p WHERE p.team.id = :teamId", Long.class)
-                .setParameter("teamId", teamId)
-                .getSingleResult();
-    }
-
     public void save(EntityManager entityManager, Team team) {
         if (team.getId() == null) {
             entityManager.persist(team);
