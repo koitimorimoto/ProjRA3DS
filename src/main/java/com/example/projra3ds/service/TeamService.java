@@ -29,11 +29,15 @@ public class TeamService {
     }
 
     public Team createTeam(String name, String country) {
+        return createTeam(name, country, Team.DEFAULT_GOALKEEPER_COLOR, Team.DEFAULT_BATTER_COLOR);
+    }
+
+    public Team createTeam(String name, String country, String goalkeeperColor, String batterColor) {
         String normalizedName = validateName(name);
         String normalizedCountry = normalizeCountry(country);
+        Team team = new Team(normalizedName, normalizedCountry, goalkeeperColor, batterColor);
         return transactions.write(entityManager -> {
             ensureNameIsAvailable(normalizedName, null, entityManager);
-            Team team = new Team(normalizedName, normalizedCountry);
             teamRepository.save(entityManager, team);
             return team;
         });
@@ -48,6 +52,23 @@ public class TeamService {
             ensureNameIsAvailable(normalizedName, id, entityManager);
             team.setName(normalizedName);
             team.setCountry(normalizedCountry);
+            return team;
+        });
+    }
+
+    public Team updateTeam(Long id, String name, String country,
+                           String goalkeeperColor, String batterColor) {
+        String normalizedName = validateName(name);
+        String normalizedCountry = normalizeCountry(country);
+        Team updatedTeam = new Team(normalizedName, normalizedCountry, goalkeeperColor, batterColor);
+        return transactions.write(entityManager -> {
+            Team team = teamRepository.findById(entityManager, id)
+                    .orElseThrow(() -> new IllegalArgumentException("Time não encontrado."));
+            ensureNameIsAvailable(normalizedName, id, entityManager);
+            team.setName(normalizedName);
+            team.setCountry(normalizedCountry);
+            team.setGoalkeeperColor(updatedTeam.getGoalkeeperColor());
+            team.setBatterColor(updatedTeam.getBatterColor());
             return team;
         });
     }

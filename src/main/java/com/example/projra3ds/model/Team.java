@@ -16,6 +16,9 @@ import java.util.List;
 @Entity
 @Table(name = "teams")
 public class Team {
+    public static final String DEFAULT_GOALKEEPER_COLOR = "#FFD54F";
+    public static final String DEFAULT_BATTER_COLOR = "#1565C0";
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -25,6 +28,12 @@ public class Team {
 
     @Column(length = 120)
     private String country;
+
+    @Column(name = "goalkeeper_color", nullable = false, length = 7)
+    private String goalkeeperColor = DEFAULT_GOALKEEPER_COLOR;
+
+    @Column(name = "batter_color", nullable = false, length = 7)
+    private String batterColor = DEFAULT_BATTER_COLOR;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -38,6 +47,12 @@ public class Team {
     public Team(String name, String country) {
         this.name = name;
         this.country = country;
+    }
+
+    public Team(String name, String country, String goalkeeperColor, String batterColor) {
+        this(name, country);
+        setGoalkeeperColor(goalkeeperColor);
+        setBatterColor(batterColor);
     }
 
     @PrePersist
@@ -67,12 +82,36 @@ public class Team {
         this.country = country;
     }
 
+    public String getGoalkeeperColor() {
+        return goalkeeperColor;
+    }
+
+    public void setGoalkeeperColor(String goalkeeperColor) {
+        this.goalkeeperColor = normalizeColor(goalkeeperColor, "goleiro");
+    }
+
+    public String getBatterColor() {
+        return batterColor;
+    }
+
+    public void setBatterColor(String batterColor) {
+        this.batterColor = normalizeColor(batterColor, "batedor");
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
     public List<Player> getPlayers() {
         return players;
+    }
+
+    private String normalizeColor(String color, String role) {
+        if (color == null || !color.matches("#[0-9a-fA-F]{6}")) {
+            throw new IllegalArgumentException(
+                    "A cor do " + role + " deve estar no formato #RRGGBB.");
+        }
+        return color.toUpperCase(java.util.Locale.ROOT);
     }
 
 }

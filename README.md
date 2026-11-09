@@ -55,11 +55,11 @@ O banco configurado é `simulador_penaltis`. Ao iniciar, a aplicação cria as t
 
 ## Preparar elencos e disputar uma partida
 
-1. Na aba **Times**, cadastre dois times.
-2. Na aba **Jogadores**, cadastre jogadores e associe-os ao time correspondente.
+1. Na aba **Times**, cadastre dois times e escolha as cores do goleiro e dos batedores; elas são usadas na partida.
+2. Na aba **Jogadores**, cadastre jogadores, informe a altura em metros (de 1,00 m a 2,50 m) e associe-os ao time correspondente.
 3. Na aba **Escalações**, selecione cada time, monte a lista de batedores e use **Subir**/**Descer** para definir a ordem. Escolha também o goleiro e salve a escalação. O goleiro também pode bater.
 4. Na aba **Partida**, escolha seu time e o time da CPU e clique em **Iniciar partida**.
-5. Na sua cobrança, o campo aparece em uma área maior, com o gol ao fundo e a bola mais distante; o marcador quadrado do cobrador avança da esquerda até a bola. O eixo X se move primeiro. Clique em **Fixar X** no momento desejado; então o eixo Y começa a se mover, e o mesmo botão fixa Y. Maior Finalização deixa o movimento mais lento. Ajuste a força e clique em **Cobrar**. Na cobrança da CPU, escolha **Defender à esquerda**, **Defender no meio** ou **Defender à direita**.
+5. Na sua cobrança, o campo aparece em uma área maior, com o gol ao fundo e a bola mais distante; os marcadores dos jogadores mudam de tamanho proporcionalmente à altura informada, usando um gol de 2,50 m como referência e ficando apoiados pelos pés. O marcador do cobrador avança até a bola antes do chute. O eixo X se move primeiro. Clique em **Fixar X** no momento desejado; então o eixo Y começa a se mover, e o mesmo botão fixa Y. Maior Finalização deixa o movimento da mira mais lento e a bola mais rápida. Ajuste a força e clique em **Cobrar**: mais força também aumenta a velocidade da bola e reduz o tempo de reação do goleiro. Finalização e força afetam o tempo de voo; o nível de Goleiro determina a velocidade com que o goleiro se desloca para defender e também seu alcance. Na cobrança da CPU, escolha **Defender à esquerda**, **Defender no meio** ou **Defender à direita**. Cada equipe usa suas próprias cores: a cor do papel de goleiro ou de batedor, inclusive quando o goleiro cobra.
 
 A disputa segue cinco cobranças por time, com encerramento antecipado quando o adversário não puder mais alcançar o placar; se empatar, continua em morte súbita. A ordem dos cobradores reinicia e se repete se um time tiver menos de cinco jogadores na lista. O andamento e os dados de cada cobrança ficam visíveis na partida atual; histórico persistente de partidas/replay será uma etapa posterior.
 

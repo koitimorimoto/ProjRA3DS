@@ -24,6 +24,7 @@ import javafx.beans.property.ReadOnlyIntegerWrapper;
 import javafx.event.ActionEvent;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 public class PlayerController {
@@ -42,6 +43,8 @@ public class PlayerController {
     @FXML
     private TableColumn<Player, Number> goalkeepingColumn;
     @FXML
+    private TableColumn<Player, String> heightColumn;
+    @FXML
     private TableColumn<Player, String> playerTeamColumn;
     @FXML
     private ComboBox<Team> assignTeamCombo;
@@ -53,6 +56,9 @@ public class PlayerController {
                 new ReadOnlyIntegerWrapper(cell.getValue().getFinishing()));
         goalkeepingColumn.setCellValueFactory(cell ->
                 new ReadOnlyIntegerWrapper(cell.getValue().getGoalkeeping()));
+        heightColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(
+                String.format(Locale.forLanguageTag("pt-BR"), "%.2f m",
+                        cell.getValue().getHeightMeters())));
         playerTeamColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(
                 cell.getValue().getTeam() == null ? "Sem time" : cell.getValue().getTeam().getName()));
 
@@ -147,6 +153,9 @@ public class PlayerController {
         TextField nameField = new TextField(creating ? "" : player.getName());
         TextField finishingField = new TextField(creating ? "50" : Integer.toString(player.getFinishing()));
         TextField goalkeepingField = new TextField(creating ? "50" : Integer.toString(player.getGoalkeeping()));
+        TextField heightField = new TextField(creating
+                ? Double.toString(Player.DEFAULT_HEIGHT_METERS)
+                : Double.toString(player.getHeightMeters()));
         ComboBox<Team> teamCombo = new ComboBox<>(FXCollections.observableArrayList(facade.findAllTeams()));
         configureTeamCombo(teamCombo, true);
         if (!creating && player.getTeam() != null) {
@@ -162,7 +171,8 @@ public class PlayerController {
         form.addRow(0, new Label("Nome:"), nameField);
         form.addRow(1, new Label("Finalização (0-100):"), finishingField);
         form.addRow(2, new Label("Habilidade de goleiro (0-100):"), goalkeepingField);
-        form.addRow(3, new Label("Time (opcional):"), teamCombo);
+        form.addRow(3, new Label("Altura (1,00-2,50 m):"), heightField);
+        form.addRow(4, new Label("Time (opcional):"), teamCombo);
         GridPane.setHgrow(nameField, Priority.ALWAYS);
         dialog.getDialogPane().setContent(form);
 
@@ -170,7 +180,8 @@ public class PlayerController {
         dialog.getDialogPane().getButtonTypes().addAll(saveButton, ButtonType.CANCEL);
         dialog.getDialogPane().lookupButton(saveButton).addEventFilter(ActionEvent.ACTION, event -> {
             try {
-                validatePlayerInput(nameField.getText(), finishingField.getText(), goalkeepingField.getText());
+                validatePlayerInput(nameField.getText(), finishingField.getText(),
+                        goalkeepingField.getText(), heightField.getText());
             } catch (IllegalArgumentException exception) {
                 UiMessages.showError("Dados inválidos", exception);
                 event.consume();
@@ -178,27 +189,44 @@ public class PlayerController {
         });
         dialog.setResultConverter(button -> button == saveButton
                 ? new PlayerInput(nameField.getText().trim(), Integer.parseInt(finishingField.getText().trim()),
-                Integer.parseInt(goalkeepingField.getText().trim()),
+                Integer.parseInt(goalkeepingField.getText().trim()), parseHeight(heightField.getText()),
                 teamCombo.getValue() == null ? null : teamCombo.getValue().getId())
                 : null);
 
         Optional<PlayerInput> result = dialog.showAndWait();
         result.ifPresent(input -> perform("Não foi possível salvar o jogador", () -> {
             if (creating) {
-                facade.createPlayer(input.name(), input.finishing(), input.goalkeeping(), input.teamId());
+                facade.createPlayer(input.name(), input.finishing(), input.goalkeeping(),
+                        input.heightMeters(), input.teamId());
             } else {
                 facade.updatePlayer(player.getId(), input.name(), input.finishing(),
-                        input.goalkeeping(), input.teamId());
+                        input.goalkeeping(), input.heightMeters(), input.teamId());
             }
         }));
     }
 
-    private void validatePlayerInput(String name, String finishing, String goalkeeping) {
+    private void validatePlayerInput(String name, String finishing, String goalkeeping, String height) {
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("O nome do jogador é obrigatório.");
         }
         validateSkillInput(finishing, "Finalização");
         validateSkillInput(goalkeeping, "Habilidade de goleiro");
+        parseHeight(height);
+    }
+
+    private double parseHeight(String text) {
+        try {
+            double height = Double.parseDouble(text.trim().replace(',', '.'));
+            if (!Double.isFinite(height) || height < Player.MIN_HEIGHT_METERS
+                    || height > Player.MAX_HEIGHT_METERS
+                    || Math.abs(height * 100 - Math.rint(height * 100)) > 1e-8) {
+                throw new IllegalArgumentException(
+                        "A altura deve estar entre 1,00 m e 2,50 m, com até duas casas decimais.");
+            }
+            return height;
+        } catch (NumberFormatException exception) {
+            throw new IllegalArgumentException("Altura deve ser informada em metros, por exemplo 1,75.");
+        }
     }
 
     private void validateSkillInput(String text, String field) {
@@ -293,6 +321,7 @@ public class PlayerController {
         }
     }
 
-    private record PlayerInput(String name, int finishing, int goalkeeping, Long teamId) {
+    private record PlayerInput(String name, int finishing, int goalkeeping,
+                               double heightMeters, Long teamId) {
     }
 }

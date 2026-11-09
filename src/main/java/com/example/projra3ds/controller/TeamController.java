@@ -10,6 +10,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.ColorPicker;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
@@ -17,7 +18,9 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
+import javafx.scene.paint.Color;
 
+import java.util.Locale;
 import java.util.Optional;
 
 public class TeamController {
@@ -30,6 +33,10 @@ public class TeamController {
     @FXML
     private TableColumn<Team, String> countryColumn;
     @FXML
+    private TableColumn<Team, String> goalkeeperColorColumn;
+    @FXML
+    private TableColumn<Team, String> batterColorColumn;
+    @FXML
     private TableColumn<Team, Number> playerCountColumn;
 
     @FXML
@@ -37,6 +44,10 @@ public class TeamController {
         nameColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getName()));
         countryColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(
                 cell.getValue().getCountry() == null ? "" : cell.getValue().getCountry()));
+        goalkeeperColorColumn.setCellValueFactory(cell ->
+                new ReadOnlyStringWrapper(cell.getValue().getGoalkeeperColor()));
+        batterColorColumn.setCellValueFactory(cell ->
+                new ReadOnlyStringWrapper(cell.getValue().getBatterColor()));
         playerCountColumn.setCellValueFactory(cell ->
                 new ReadOnlyIntegerWrapper(cell.getValue().getPlayers().size()));
     }
@@ -88,11 +99,17 @@ public class TeamController {
         TextField nameField = new TextField(creating ? "" : team.getName());
         TextField countryField = new TextField(
                 creating || team.getCountry() == null ? "" : team.getCountry());
+        ColorPicker goalkeeperColorPicker = new ColorPicker(Color.web(creating
+                ? Team.DEFAULT_GOALKEEPER_COLOR : team.getGoalkeeperColor()));
+        ColorPicker batterColorPicker = new ColorPicker(Color.web(creating
+                ? Team.DEFAULT_BATTER_COLOR : team.getBatterColor()));
         GridPane form = new GridPane();
         form.setHgap(10);
         form.setVgap(10);
         form.addRow(0, new Label("Nome:"), nameField);
         form.addRow(1, new Label("País / região (opcional):"), countryField);
+        form.addRow(2, new Label("Cor do goleiro:"), goalkeeperColorPicker);
+        form.addRow(3, new Label("Cor dos batedores:"), batterColorPicker);
         GridPane.setHgrow(nameField, Priority.ALWAYS);
         dialog.getDialogPane().setContent(form);
 
@@ -112,16 +129,26 @@ public class TeamController {
                     }
                 });
         dialog.setResultConverter(button -> button == saveButton
-                ? new TeamInput(nameField.getText().trim(), countryField.getText().trim())
+                ? new TeamInput(nameField.getText().trim(), countryField.getText().trim(),
+                toHex(goalkeeperColorPicker.getValue()), toHex(batterColorPicker.getValue()))
                 : null);
         Optional<TeamInput> result = dialog.showAndWait();
         result.ifPresent(input -> perform("Não foi possível salvar o time", () -> {
             if (creating) {
-                facade.createTeam(input.name(), input.country());
+                facade.createTeam(input.name(), input.country(),
+                        input.goalkeeperColor(), input.batterColor());
             } else {
-                facade.updateTeam(team.getId(), input.name(), input.country());
+                facade.updateTeam(team.getId(), input.name(), input.country(),
+                        input.goalkeeperColor(), input.batterColor());
             }
         }));
+    }
+
+    private String toHex(Color color) {
+        return String.format(Locale.ROOT, "#%02X%02X%02X",
+                (int) Math.round(color.getRed() * 255),
+                (int) Math.round(color.getGreen() * 255),
+                (int) Math.round(color.getBlue() * 255));
     }
 
     private Team selectedTeam() {
@@ -142,6 +169,6 @@ public class TeamController {
         }
     }
 
-    private record TeamInput(String name, String country) {
+    private record TeamInput(String name, String country, String goalkeeperColor, String batterColor) {
     }
 }
