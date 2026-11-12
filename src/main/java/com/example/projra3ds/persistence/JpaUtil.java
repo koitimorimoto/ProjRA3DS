@@ -24,7 +24,6 @@ public final class JpaUtil {
                 if (entityManagerFactory == null) {
                     String username = requiredConfigValue("PENALTY_DB_USER");
                     String password = requiredConfigValue("PENALTY_DB_PASSWORD");
-                    DatabaseInitializer.initialize(username, password);
                     Map<String, Object> properties = new HashMap<>();
                     properties.put("jakarta.persistence.jdbc.user", username);
                     properties.put("jakarta.persistence.jdbc.password", password);
