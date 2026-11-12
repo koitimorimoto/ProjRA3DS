@@ -1,6 +1,8 @@
 package com.example.projra3ds.game;
 
 public final class AimTiming {
+    private static final double SLOW_MOTION_FACTOR = 0.5;
+
     private final double speed;
     private double x = 0.18;
     private double y = 0.28;
@@ -13,7 +15,7 @@ public final class AimTiming {
         if (finishing < 0 || finishing > 100) {
             throw new IllegalArgumentException("Finalização deve estar entre 0 e 100.");
         }
-        speed = 0.35 + (100 - finishing) * 0.012;
+        speed = (0.35 + (100 - finishing) * 0.012) * SLOW_MOTION_FACTOR;
     }
 
     public double getX() {

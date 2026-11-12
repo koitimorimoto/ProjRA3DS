@@ -28,6 +28,7 @@
             <TableColumn fx:id="nameColumn" text="Nome" prefWidth="240"/>
             <TableColumn fx:id="finishingColumn" text="Finalização" prefWidth="110"/>
             <TableColumn fx:id="goalkeepingColumn" text="Goleiro" prefWidth="100"/>
+            <TableColumn fx:id="heightColumn" text="Altura" prefWidth="100"/>
             <TableColumn fx:id="playerTeamColumn" text="Time" prefWidth="220"/>
         </columns>
     </TableView>

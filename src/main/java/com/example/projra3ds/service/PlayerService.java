@@ -30,12 +30,18 @@ public class PlayerService {
     }
 
     public Player createPlayer(String name, int finishing, int goalkeeping, Long teamId) {
+        return createPlayer(name, finishing, goalkeeping, Player.DEFAULT_HEIGHT_METERS, teamId);
+    }
+
+    public Player createPlayer(String name, int finishing, int goalkeeping,
+                               double heightMeters, Long teamId) {
         String normalizedName = validateName(name);
         validateSkill(finishing, "Finalização");
         validateSkill(goalkeeping, "Goleiro");
+        Player.validateHeightMeters(heightMeters);
         return transactions.write(entityManager -> {
             Team team = findTeamOrNull(teamId, entityManager);
-            Player player = new Player(normalizedName, finishing, goalkeeping);
+            Player player = new Player(normalizedName, finishing, goalkeeping, heightMeters);
             player.setTeam(team);
             playerRepository.save(entityManager, player);
             return player;
@@ -43,9 +49,17 @@ public class PlayerService {
     }
 
     public Player updatePlayer(Long id, String name, int finishing, int goalkeeping, Long teamId) {
+        return updatePlayer(id, name, finishing, goalkeeping, null, teamId);
+    }
+
+    public Player updatePlayer(Long id, String name, int finishing, int goalkeeping,
+                               Double heightMeters, Long teamId) {
         String normalizedName = validateName(name);
         validateSkill(finishing, "Finalização");
         validateSkill(goalkeeping, "Goleiro");
+        if (heightMeters != null) {
+            Player.validateHeightMeters(heightMeters);
+        }
         return transactions.write(entityManager -> {
             Player player = playerRepository.findById(entityManager, id)
                     .orElseThrow(() -> new IllegalArgumentException("Jogador não encontrado."));
@@ -56,6 +70,9 @@ public class PlayerService {
             player.setName(normalizedName);
             player.setFinishing(finishing);
             player.setGoalkeeping(goalkeeping);
+            if (heightMeters != null) {
+                player.setHeightMeters(heightMeters);
+            }
             player.setTeam(team);
             return player;
         });
@@ -137,7 +154,7 @@ public class PlayerService {
     }
 
     private void validateSkill(int value, String field) {
-        if (value < 0 || value > 100) {
+        if (!Player.isSkillInRange(value)) {
             throw new IllegalArgumentException(field + " deve estar entre 0 e 100.");
         }
     }

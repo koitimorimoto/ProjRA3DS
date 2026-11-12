@@ -6,6 +6,7 @@ import com.example.projra3ds.game.GoalkeeperSide;
 import com.example.projra3ds.game.PenaltyAttempt;
 import com.example.projra3ds.game.PenaltyMatchEngine;
 import com.example.projra3ds.game.PlayerSnapshot;
+import com.example.projra3ds.game.ShotPhysics;
 import com.example.projra3ds.game.ShotResult;
 import com.example.projra3ds.game.TeamSnapshot;
 import com.example.projra3ds.model.Player;
@@ -21,28 +22,17 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.Slider;
-import javafx.scene.paint.Color;
 import javafx.util.Duration;
 
 import java.util.List;
-import java.util.Optional;
 
 public class MatchController {
-    private static final double GOAL_LEFT_RATIO = 0.24;
-    private static final double GOAL_RIGHT_RATIO = 0.76;
-    private static final double GOAL_TOP_RATIO = 0.08;
-    private static final double GOAL_BOTTOM_RATIO = 0.43;
-    private static final double BALL_START_RATIO = 0.88;
-    private static final double SHOOTER_RUN_UP_PROGRESS = 0.28;
-
     private final ManagementFacade facade = new ManagementFacade();
     private final SimpleDoubleProperty animationProgress = new SimpleDoubleProperty(1);
     private final AnimationTimer aimTimer = new AnimationTimer() {
@@ -70,6 +60,7 @@ public class MatchController {
     private PenaltyAttempt lastAttempt;
     private GoalkeeperSide selectedDive;
     private boolean animating;
+    private MatchCanvasRenderer matchRenderer;
 
     @FXML
     private ComboBox<Team> userTeamCombo;
@@ -104,10 +95,11 @@ public class MatchController {
 
     @FXML
     private void initialize() {
-        userTeamCombo.setCellFactory(list -> teamCell());
-        userTeamCombo.setButtonCell(teamCell());
-        cpuTeamCombo.setCellFactory(list -> teamCell());
-        cpuTeamCombo.setButtonCell(teamCell());
+        matchRenderer = new MatchCanvasRenderer(goalCanvas);
+        userTeamCombo.setCellFactory(list -> ControllerUi.teamCell());
+        userTeamCombo.setButtonCell(ControllerUi.teamCell());
+        cpuTeamCombo.setCellFactory(list -> ControllerUi.teamCell());
+        cpuTeamCombo.setButtonCell(ControllerUi.teamCell());
         animationProgress.addListener((observable, oldValue, newValue) -> drawGoal());
         drawGoal();
         updateControls();
@@ -123,8 +115,8 @@ public class MatchController {
             cpuTeamCombo.setValue(null);
             userTeamCombo.setItems(FXCollections.observableArrayList(teams));
             cpuTeamCombo.setItems(FXCollections.observableArrayList(teams));
-            findTeam(teams, userId).ifPresent(userTeamCombo::setValue);
-            findTeam(teams, cpuId).ifPresent(cpuTeamCombo::setValue);
+            ControllerUi.findTeam(teams, userId).ifPresent(userTeamCombo::setValue);
+            ControllerUi.findTeam(teams, cpuId).ifPresent(cpuTeamCombo::setValue);
             if (userTeamCombo.getValue() == null && !teams.isEmpty()) {
                 userTeamCombo.setValue(teams.get(0));
             }
@@ -277,12 +269,13 @@ public class MatchController {
         List<PlayerSnapshot> batters = lineup.getBatters().stream()
                 .map(this::snapshot)
                 .toList();
-        return new TeamSnapshot(team.getId(), team.getName(), batters, snapshot(lineup.getGoalkeeper()));
+        return new TeamSnapshot(team.getId(), team.getName(), batters,
+                snapshot(lineup.getGoalkeeper()), team.getGoalkeeperColor(), team.getBatterColor());
     }
 
     private PlayerSnapshot snapshot(Player player) {
         return new PlayerSnapshot(player.getId(), player.getName(),
-                player.getFinishing(), player.getGoalkeeping());
+                player.getFinishing(), player.getGoalkeeping(), player.getHeightMeters());
     }
 
     private void selectDive(GoalkeeperSide side) {
@@ -298,9 +291,11 @@ public class MatchController {
     private void animateAttempt() {
         animating = true;
         updateControls();
-        double animationDuration = 850 - lastAttempt.power() * 550;
+        double animationDuration = (MatchCanvasRenderer.SHOOTER_RUN_UP_SECONDS
+                + ShotPhysics.ballFlightSeconds(lastAttempt.shooter().finishing(),
+                lastAttempt.power())) * 1000;
         Timeline timeline = new Timeline(new KeyFrame(Duration.millis(animationDuration),
-                new KeyValue(animationProgress, 1, Interpolator.EASE_BOTH)));
+                new KeyValue(animationProgress, 1, Interpolator.LINEAR)));
         timeline.setOnFinished(event -> {
             animating = false;
             if (match.isFinished()) {
@@ -377,140 +372,9 @@ public class MatchController {
     }
 
     private void drawGoal() {
-        if (goalCanvas == null) {
-            return;
+        if (matchRenderer != null) {
+            matchRenderer.draw(match, aimTiming, lastAttempt, animationProgress.get());
         }
-        GraphicsContext graphics = goalCanvas.getGraphicsContext2D();
-        double width = goalCanvas.getWidth();
-        double height = goalCanvas.getHeight();
-        double goalLeft = width * GOAL_LEFT_RATIO;
-        double goalRight = width * GOAL_RIGHT_RATIO;
-        double goalTop = height * GOAL_TOP_RATIO;
-        double goalBottom = height * GOAL_BOTTOM_RATIO;
-        double ballX = width / 2;
-        double ballY = height * BALL_START_RATIO;
-        double goalWidth = goalRight - goalLeft;
-        double goalHeight = goalBottom - goalTop;
-
-        graphics.setFill(Color.web("#267b36"));
-        graphics.fillRect(0, 0, width, height);
-
-        for (int stripe = 0; stripe < 8; stripe++) {
-            double stripeTop = height * 0.48 + height * 0.065 * stripe;
-            graphics.setFill(stripe % 2 == 0
-                    ? Color.color(0.38, 0.72, 0.16, 0.18)
-                    : Color.color(0.08, 0.43, 0.12, 0.14));
-            graphics.fillRect(0, stripeTop, width, height * 0.065);
-        }
-
-        graphics.setStroke(Color.WHITE);
-        graphics.setLineWidth(2);
-        double penaltyBoxLeft = width * 0.15;
-        double penaltyBoxRight = width * 0.85;
-        double penaltyBoxBottom = height * 0.64;
-        graphics.strokeLine(penaltyBoxLeft, goalBottom, penaltyBoxLeft, penaltyBoxBottom);
-        graphics.strokeLine(penaltyBoxLeft, penaltyBoxBottom, penaltyBoxRight, penaltyBoxBottom);
-        graphics.strokeLine(penaltyBoxRight, penaltyBoxBottom, penaltyBoxRight, goalBottom);
-        graphics.strokeLine(width * 0.39, goalBottom, width * 0.39, height * 0.53);
-        graphics.strokeLine(width * 0.39, height * 0.53, width * 0.61, height * 0.53);
-        graphics.strokeLine(width * 0.61, height * 0.53, width * 0.61, goalBottom);
-        graphics.setLineWidth(1.5);
-        graphics.strokeLine(width * 0.08, height * 0.55, width * 0.92, height * 0.55);
-
-        graphics.setStroke(Color.color(1, 1, 1, 0.48));
-        graphics.setLineWidth(1);
-        for (int i = 1; i < 8; i++) {
-            double x = goalLeft + goalWidth * i / 8.0;
-            graphics.strokeLine(x, goalTop, x, goalBottom);
-        }
-        for (int i = 1; i < 3; i++) {
-            double y = goalTop + goalHeight * i / 3.0;
-            graphics.strokeLine(goalLeft, y, goalRight, y);
-        }
-
-        graphics.setStroke(Color.WHITE);
-        graphics.setLineWidth(6);
-        graphics.strokeRect(goalLeft, goalTop, goalWidth, goalHeight);
-
-        double keeperX;
-        if (lastAttempt != null && animationProgress.get() < 1) {
-            double target = xToCanvas(keeperPosition(lastAttempt.goalkeeperSide()));
-            keeperX = interpolate(width / 2, target, animationProgress.get());
-        } else if (lastAttempt != null && match != null && match.isFinished()) {
-            keeperX = xToCanvas(keeperPosition(lastAttempt.goalkeeperSide()));
-        } else {
-            keeperX = width / 2;
-        }
-        double keeperY = goalBottom - goalHeight * 0.18;
-        graphics.setFill(Color.web("#1976d2"));
-        graphics.fillRoundRect(keeperX - 18, keeperY - 16, 36, 32, 10, 10);
-        graphics.setStroke(Color.WHITE);
-        graphics.setLineWidth(2);
-        graphics.strokeRoundRect(keeperX - 18, keeperY - 16, 36, 32, 10, 10);
-
-        if (lastAttempt != null) {
-            double progress = animationProgress.get();
-            if (progress < SHOOTER_RUN_UP_PROGRESS) {
-                drawShooter(graphics, interpolate(ballX - width * 0.16, ballX - 22,
-                        progress / SHOOTER_RUN_UP_PROGRESS), ballY);
-            }
-            double shotX = interpolate(ballX, xToCanvas(lastAttempt.ballX()), progress);
-            double shotY = interpolate(ballY, yToCanvas(lastAttempt.ballY()), progress);
-            graphics.setFill(Color.WHITE);
-            graphics.fillOval(shotX - 10, shotY - 10, 20, 20);
-            graphics.setStroke(Color.web("#202020"));
-            graphics.setLineWidth(1.5);
-            graphics.strokeOval(shotX - 10, shotY - 10, 20, 20);
-        } else {
-            if (match != null && !match.isFinished()) {
-                drawShooter(graphics, ballX - width * 0.16, ballY);
-            }
-        }
-
-        if (lastAttempt == null && match != null && !match.isFinished()
-                && match.getNextAttackingTeamIndex() == 0 && aimTiming != null) {
-            double targetX = xToCanvas(aimTiming.getX() * 2 - 1);
-            double targetY = yToCanvas(aimTiming.getY());
-            graphics.setFill(Color.web("#ffca28"));
-            graphics.fillOval(targetX - 8, targetY - 8, 16, 16);
-            graphics.setStroke(Color.web("#ffca28"));
-            graphics.setLineWidth(2);
-            graphics.strokeOval(targetX - 14, targetY - 14, 28, 28);
-        }
-
-        if (lastAttempt == null) {
-            graphics.setFill(Color.WHITE);
-            graphics.fillOval(ballX - 10, ballY - 10, 20, 20);
-            graphics.setStroke(Color.web("#202020"));
-            graphics.setLineWidth(1.5);
-            graphics.strokeOval(ballX - 10, ballY - 10, 20, 20);
-        }
-    }
-
-    private void drawShooter(GraphicsContext graphics, double centerX, double centerY) {
-        graphics.setFill(Color.web("#f5f5f5"));
-        graphics.fillRect(centerX - 15, centerY - 19, 30, 38);
-        graphics.setFill(Color.web("#1565c0"));
-        graphics.fillRect(centerX - 11, centerY - 15, 22, 30);
-        graphics.setStroke(Color.WHITE);
-        graphics.setLineWidth(2);
-        graphics.strokeRect(centerX - 15, centerY - 19, 30, 38);
-    }
-
-    private double xToCanvas(double x) {
-        double goalLeft = goalCanvas.getWidth() * GOAL_LEFT_RATIO;
-        double goalWidth = goalCanvas.getWidth() * (GOAL_RIGHT_RATIO - GOAL_LEFT_RATIO);
-        return goalLeft + (x + 1) * goalWidth / 2;
-    }
-
-    private double yToCanvas(double y) {
-        double goalTop = goalCanvas.getHeight() * GOAL_TOP_RATIO;
-        double goalHeight = goalCanvas.getHeight() * (GOAL_BOTTOM_RATIO - GOAL_TOP_RATIO);
-        return goalTop + (1 - y) * goalHeight;
-    }
-
-    private double interpolate(double from, double to, double progress) {
-        return from + (to - from) * progress;
     }
 
     private String formatAttempt(PenaltyAttempt attempt) {
@@ -542,31 +406,6 @@ public class MatchController {
             case LEFT -> "à esquerda";
             case CENTER -> "no meio";
             case RIGHT -> "à direita";
-        };
-    }
-
-    private double keeperPosition(GoalkeeperSide side) {
-        return switch (side) {
-            case LEFT -> -0.5;
-            case CENTER -> 0;
-            case RIGHT -> 0.5;
-        };
-    }
-
-    private Optional<Team> findTeam(List<Team> teams, Long teamId) {
-        if (teamId == null) {
-            return Optional.empty();
-        }
-        return teams.stream().filter(team -> team.getId().equals(teamId)).findFirst();
-    }
-
-    private ListCell<Team> teamCell() {
-        return new ListCell<>() {
-            @Override
-            protected void updateItem(Team team, boolean empty) {
-                super.updateItem(team, empty);
-                setText(empty || team == null ? null : team.getName());
-            }
         };
     }
 

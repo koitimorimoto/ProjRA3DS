@@ -123,7 +123,8 @@ public final class PenaltyMatchEngine {
         double precisionRange = 0.035 + (100 - shooter.finishing()) * 0.002;
         double ballX = targetX + random.nextDouble(-precisionRange, precisionRange);
         double ballY = targetY + random.nextDouble(-precisionRange, precisionRange);
-        ShotResult result = resolveShot(ballX, ballY, dive, goalkeeper.goalkeeping());
+        ShotResult result = resolveShot(ballX, ballY, dive,
+                goalkeeper.goalkeeping(), shooter.finishing(), shotPower);
 
         int round = getNextRound();
         PenaltyAttempt attempt = new PenaltyAttempt(
@@ -162,20 +163,13 @@ public final class PenaltyMatchEngine {
         return winnerIndex == 0 ? userTeam.name() : cpuTeam.name();
     }
 
-    private ShotResult resolveShot(double x, double y, GoalkeeperSide side, int goalkeeperSkill) {
+    private ShotResult resolveShot(double x, double y, GoalkeeperSide side,
+                                   int goalkeeperSkill, int finishing, double power) {
         if (x < GOAL_MIN_X || x > GOAL_MAX_X || y < GOAL_MIN_Y || y > GOAL_MAX_Y) {
             return ShotResult.OUT;
         }
-        double keeperX = switch (side) {
-            case LEFT -> -0.5;
-            case CENTER -> 0.0;
-            case RIGHT -> 0.5;
-        };
-        double horizontalReach = 0.14 + goalkeeperSkill * 0.0025;
-        double verticalReach = 0.18 + goalkeeperSkill * 0.004;
-        boolean caught = Math.abs(x - keeperX) <= horizontalReach
-                && Math.abs(y - 0.5) <= verticalReach;
-        return caught ? ShotResult.SAVED : ShotResult.GOAL;
+        return ShotPhysics.canSave(x, y, side, goalkeeperSkill, finishing, power)
+                ? ShotResult.SAVED : ShotResult.GOAL;
     }
 
     private void updateMatchStatus() {

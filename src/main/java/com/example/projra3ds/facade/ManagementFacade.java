@@ -29,8 +29,18 @@ public class ManagementFacade {
         return playerService.createPlayer(name, finishing, goalkeeping, teamId);
     }
 
+    public Player createPlayer(String name, int finishing, int goalkeeping,
+                               double heightMeters, Long teamId) {
+        return playerService.createPlayer(name, finishing, goalkeeping, heightMeters, teamId);
+    }
+
     public Player updatePlayer(Long id, String name, int finishing, int goalkeeping, Long teamId) {
         return playerService.updatePlayer(id, name, finishing, goalkeeping, teamId);
+    }
+
+    public Player updatePlayer(Long id, String name, int finishing, int goalkeeping,
+                               Double heightMeters, Long teamId) {
+        return playerService.updatePlayer(id, name, finishing, goalkeeping, heightMeters, teamId);
     }
 
     public List<Player> findAllPlayers() {
@@ -61,16 +71,21 @@ public class ManagementFacade {
         return teamService.createTeam(name, country);
     }
 
+    public Team createTeam(String name, String country, String goalkeeperColor, String batterColor) {
+        return teamService.createTeam(name, country, goalkeeperColor, batterColor);
+    }
+
     public Team updateTeam(Long id, String name, String country) {
         return teamService.updateTeam(id, name, country);
     }
 
-    public List<Team> findAllTeams() {
-        return teamService.findAllTeams();
+    public Team updateTeam(Long id, String name, String country,
+                           String goalkeeperColor, String batterColor) {
+        return teamService.updateTeam(id, name, country, goalkeeperColor, batterColor);
     }
 
-    public long countPlayers(Long teamId) {
-        return teamService.countPlayers(teamId);
+    public List<Team> findAllTeams() {
+        return teamService.findAllTeams();
     }
 
     public void deleteTeam(Long id) {

@@ -24,4 +24,14 @@ class PlayerServiceTest {
         assertThrows(IllegalArgumentException.class,
                 () -> service.createPlayer("Jogador", 50, -1, null));
     }
+
+    @Test
+    void rejectsHeightOutsideSupportedRangeOrPrecision() {
+        assertThrows(IllegalArgumentException.class,
+                () -> service.createPlayer("Jogador", 50, 50, 0.99, null));
+        assertThrows(IllegalArgumentException.class,
+                () -> service.createPlayer("Jogador", 50, 50, 2.51, null));
+        assertThrows(IllegalArgumentException.class,
+                () -> service.createPlayer("Jogador", 50, 50, 1.755, null));
+    }
 }

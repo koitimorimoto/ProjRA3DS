@@ -20,6 +20,8 @@
         <columns>
             <TableColumn fx:id="nameColumn" text="Time" prefWidth="280"/>
             <TableColumn fx:id="countryColumn" text="País / região" prefWidth="240"/>
+            <TableColumn fx:id="goalkeeperColorColumn" text="Cor do goleiro" prefWidth="150"/>
+            <TableColumn fx:id="batterColorColumn" text="Cor dos batedores" prefWidth="170"/>
             <TableColumn fx:id="playerCountColumn" text="Jogadores" prefWidth="120"/>
         </columns>
     </TableView>
