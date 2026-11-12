@@ -26,9 +26,12 @@ O Maven Wrapper já está incluído no projeto; não é necessário instalar Mav
    CREATE DATABASE IF NOT EXISTS simulador_penaltis;
    CREATE USER IF NOT EXISTS 'penalty_app'@'localhost' IDENTIFIED BY 'troque_esta_senha';
    GRANT ALL PRIVILEGES ON simulador_penaltis.* TO 'penalty_app'@'localhost';
+   GRANT CREATE ON *.* TO 'penalty_app'@'localhost';
    FLUSH PRIVILEGES;
    EXIT;
    ```
+
+   A permissão global `CREATE` permite que a aplicação recrie o banco caso ele seja apagado. Ela também permite a esse usuário criar outros bancos; se isso não for aceitável, não conceda essa permissão e recrie o database manualmente pelo administrador.
 
    Se o usuário `penalty_app` já existir e você quiser definir uma nova senha, execute também:
 
@@ -51,7 +54,7 @@ O Maven Wrapper já está incluído no projeto; não é necessário instalar Mav
 
    Não coloque aspas nos valores. O arquivo `.env` é local, ignorado pelo Git, e não deve ser enviado aos colegas. Cada pessoa cria o seu.
 
-O banco configurado é `simulador_penaltis`. Ao iniciar, a aplicação cria as tabelas ausentes usando `CREATE TABLE IF NOT EXISTS`, preservando as tabelas e os dados que já existem. O usuário da aplicação precisa de permissão para criar tabelas nesse banco.
+O banco configurado é `simulador_penaltis`. Se o banco ainda não existir, o Connector/J o cria pela opção `createDatabaseIfNotExist` da URL. Ao iniciar, o EclipseLink cria as tabelas ausentes e estende tabelas existentes com colunas mapeadas pelas entidades JPA. Essa configuração não apaga tabelas nem dados existentes. O usuário da aplicação precisa de permissão para criar o banco e as tabelas. Apagar o database manualmente remove todos os seus dados.
 
 ## Preparar elencos e disputar uma partida
 
@@ -108,3 +111,5 @@ Como alternativa à leitura do `.env`, é possível definir `PENALTY_DB_USER` e 
 - `repository`: consultas e operações JPA
 - `facade`: ponto de entrada dos controllers para o gerenciamento
 - `persistence`: unidade JPA, ciclo de vida da `EntityManagerFactory` e transações
+
+O schema é gerenciado pelo EclipseLink usando as entidades JPA; não há inicializador SQL manual.
