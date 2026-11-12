@@ -5,12 +5,43 @@ Aplicação desktop em JavaFX: cadastro e gerenciamento de jogadores e times, es
 ## Requisitos
 
 - JDK 17 ou superior
-- MySQL 8 em execução local (`localhost:3306`)
+- MySQL 8: via Docker (`docker compose`) ou instalado localmente
 - IntelliJ IDEA (opcional; também é possível executar pelo terminal)
 
 O Maven Wrapper já está incluído no projeto; não é necessário instalar Maven. As bibliotecas JPA, EclipseLink e MySQL Connector estão na pasta `lib/`. O JavaFX e demais dependências são baixados pelo Maven na primeira compilação, portanto é necessário acesso à internet nessa etapa.
 
-## Preparar o MySQL
+## Preparar o MySQL com Docker (recomendado)
+
+Requer Docker com o plugin Compose (`docker compose version`).
+
+1. Crie o `.env` a partir do exemplo e preencha usuário e senha (o container cria esse usuário e o banco `simulador_penaltis` automaticamente na primeira inicialização):
+
+   ```bash
+   cp .env.example .env
+   ```
+
+   Se já existir um MySQL instalado na máquina usando a porta 3306, defina `PENALTY_DB_PORT=3307` (ou outra porta livre) no `.env`. A aplicação usa a mesma variável para se conectar.
+
+2. Suba o banco:
+
+   ```bash
+   docker compose up -d
+   ```
+
+   Acompanhe até o status ficar `healthy` com `docker compose ps`.
+
+3. Execute a aplicação normalmente (veja abaixo).
+
+Comandos úteis:
+
+- `docker compose stop` — para o container mantendo os dados
+- `docker compose down` — remove o container; os dados continuam no volume `mysql-data`
+- `docker compose down -v` — remove também o volume, **apagando todos os dados**
+- `docker compose exec mysql mysql -u <usuario> -p simulador_penaltis` — abre o cliente MySQL dentro do container
+
+O usuário e a senha só são aplicados quando o volume é criado. Se alterá-los no `.env` depois, rode `docker compose down -v` e suba de novo (isso apaga os dados).
+
+## Preparar o MySQL local (sem Docker)
 
 1. Abra uma conexão administrativa ao MySQL:
 
@@ -72,7 +103,7 @@ Na raiz do projeto, rode:
 ./mvnw javafx:run
 ```
 
-O primeiro comando compila e executa os testes das regras de negócio e da mecânica da partida sem conectar ao MySQL. O segundo inicia a interface e precisa de um `.env` válido e do MySQL em execução.
+O primeiro comando compila e executa os testes das regras de negócio e da mecânica da partida sem conectar ao MySQL. O segundo inicia a interface e precisa de um `.env` válido e do MySQL em execução (container ou local).
 
 No Windows, use o wrapper correspondente:
 

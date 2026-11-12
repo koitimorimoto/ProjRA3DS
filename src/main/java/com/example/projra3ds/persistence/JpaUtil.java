@@ -24,8 +24,10 @@ public final class JpaUtil {
                 if (entityManagerFactory == null) {
                     String username = requiredConfigValue("PENALTY_DB_USER");
                     String password = requiredConfigValue("PENALTY_DB_PASSWORD");
-                    DatabaseInitializer.initialize(username, password);
+                    String jdbcUrl = buildJdbcUrl();
+                    DatabaseInitializer.initialize(jdbcUrl, username, password);
                     Map<String, Object> properties = new HashMap<>();
+                    properties.put("jakarta.persistence.jdbc.url", jdbcUrl);
                     properties.put("jakarta.persistence.jdbc.user", username);
                     properties.put("jakarta.persistence.jdbc.password", password);
                     entityManagerFactory = Persistence.createEntityManagerFactory(
@@ -49,11 +51,28 @@ public final class JpaUtil {
         return properties;
     }
 
-    private static String requiredConfigValue(String name) {
+    private static String buildJdbcUrl() {
+        String host = optionalConfigValue("PENALTY_DB_HOST", "localhost");
+        String port = optionalConfigValue("PENALTY_DB_PORT", "3306");
+        return "jdbc:mysql://" + host + ":" + port + "/simulador_penaltis"
+                + "?createDatabaseIfNotExist=true&serverTimezone=UTC";
+    }
+
+    private static String optionalConfigValue(String name, String defaultValue) {
+        String value = configValue(name);
+        return value == null || value.isBlank() ? defaultValue : value.trim();
+    }
+
+    private static String configValue(String name) {
         String value = System.getenv(name);
         if (value == null || value.isBlank()) {
             value = LOCAL_CONFIG.getProperty(name);
         }
+        return value;
+    }
+
+    private static String requiredConfigValue(String name) {
+        String value = configValue(name);
         if (value == null || value.isBlank()) {
             throw new IllegalStateException("Configure " + name
                     + " no ambiente do IntelliJ ou no arquivo .env para conectar ao MySQL.");

@@ -11,9 +11,6 @@ import java.sql.Statement;
 import java.util.List;
 
 final class DatabaseInitializer {
-    private static final String JDBC_URL = "jdbc:mysql://localhost:3306/simulador_penaltis"
-            + "?createDatabaseIfNotExist=true&serverTimezone=UTC";
-
     private static final List<String> CREATE_TABLES = List.of(
             """
             CREATE TABLE IF NOT EXISTS teams (
@@ -75,8 +72,8 @@ final class DatabaseInitializer {
     private DatabaseInitializer() {
     }
 
-    static void initialize(String username, String password) {
-        try (Connection connection = DriverManager.getConnection(JDBC_URL, username, password);
+    static void initialize(String jdbcUrl, String username, String password) {
+        try (Connection connection = DriverManager.getConnection(jdbcUrl, username, password);
              Statement statement = connection.createStatement()) {
             for (String createTable : CREATE_TABLES) {
                 statement.executeUpdate(createTable);

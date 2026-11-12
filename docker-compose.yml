@@ -1,0 +1,24 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: simulador-penaltis-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: simulador_penaltis
+      MYSQL_USER: ${PENALTY_DB_USER:?Defina PENALTY_DB_USER no .env}
+      MYSQL_PASSWORD: ${PENALTY_DB_PASSWORD:?Defina PENALTY_DB_PASSWORD no .env}
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+      TZ: UTC
+    ports:
+      - "127.0.0.1:${PENALTY_DB_PORT:-3306}:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u\"$$MYSQL_USER\" -p\"$$MYSQL_PASSWORD\" --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+volumes:
+  mysql-data:
