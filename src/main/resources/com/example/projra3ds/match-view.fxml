@@ -6,10 +6,11 @@
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
-<?import javafx.scene.control.ProgressBar?>
-<?import javafx.scene.control.Slider?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
 <VBox xmlns="http://javafx.com/javafx/21"
@@ -31,29 +32,36 @@
         <Label fx:id="scoreLabel" text="Placar: —" style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
         <Label fx:id="roundLabel" text="Configure os times e as escalações"/>
     </HBox>
-    <Canvas fx:id="goalCanvas" width="900" height="390" focusTraversable="true"/>
+    <GridPane hgap="12">
+        <columnConstraints>
+            <ColumnConstraints percentWidth="80"/>
+            <ColumnConstraints percentWidth="20"/>
+        </columnConstraints>
+        <rowConstraints>
+            <RowConstraints minHeight="390" prefHeight="390" maxHeight="390"/>
+        </rowConstraints>
+        <Pane fx:id="canvasPane" GridPane.columnIndex="0" GridPane.rowIndex="0">
+            <Canvas fx:id="goalCanvas" width="720" height="390" focusTraversable="true"/>
+        </Pane>
+        <VBox spacing="4" GridPane.columnIndex="1" GridPane.rowIndex="0">
+            <Label text="Cobranças realizadas"/>
+            <ListView fx:id="attemptList" VBox.vgrow="ALWAYS"/>
+        </VBox>
+    </GridPane>
     <Label fx:id="statusLabel" text="Cada time precisa de uma escalação com batedores em ordem e um goleiro."
            wrapText="true"/>
     <HBox spacing="12" alignment="CENTER_LEFT">
+        <Button fx:id="lockAimButton" text="Fixar X" onAction="#lockAim" disable="true"
+                prefWidth="280" prefHeight="64"
+                style="-fx-font-size: 22px; -fx-font-weight: bold;"/>
         <VBox spacing="4">
-            <Label text="Mira horizontal"/>
-            <ProgressBar fx:id="aimXBar" progress="0.18" prefWidth="180"/>
+            <Label text="Força (pare no verde)"/>
+            <Canvas fx:id="powerCanvas" width="260" height="32"/>
         </VBox>
-        <VBox spacing="4">
-            <Label text="Mira vertical"/>
-            <ProgressBar fx:id="aimYBar" progress="0.28" prefWidth="180"/>
-        </VBox>
-        <Button fx:id="lockAimButton" text="Fixar X" onAction="#lockAim" disable="true"/>
-        <VBox spacing="4">
-            <Label text="Força"/>
-            <Slider fx:id="powerSlider" min="0.1" max="1" value="0.65" prefWidth="150"/>
-        </VBox>
-        <Button fx:id="shootButton" text="Cobrar" onAction="#shoot" disable="true"/>
         <Button fx:id="diveLeftButton" text="Defender à esquerda" onAction="#diveLeft" disable="true"/>
         <Button fx:id="diveCenterButton" text="Defender no meio" onAction="#diveCenter" disable="true"/>
         <Button fx:id="diveRightButton" text="Defender à direita" onAction="#diveRight" disable="true"/>
     </HBox>
-    <Label text="Na sua cobrança, fixe X e depois Y com o mesmo botão; a velocidade diminui conforme a Finalização. Ajuste a força e cobre. Quando a CPU cobrar, escolha esquerda, meio ou direita."/>
-    <Label text="Cobranças realizadas"/>
-    <ListView fx:id="attemptList" prefHeight="80" VBox.vgrow="ALWAYS"/>
+    <Label text="Na sua cobrança, use o mesmo botão três vezes: fixe X, fixe Y e fixe a força (o terceiro clique já cobra). Acerte o meio da barra de força (zona verde), senão a bola vai para fora: quanto maior a Finalização, mais lenta a barra e maior a zona verde. Quando a CPU cobrar, escolha esquerda, meio ou direita."
+           wrapText="true"/>
 </VBox>

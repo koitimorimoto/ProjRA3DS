@@ -15,6 +15,13 @@ final class AttemptText {
                 + " · goleiro: " + side(attempt.goalkeeperSide());
     }
 
+    /** Versão em várias linhas, para a lista estreita da partida ao vivo. */
+    static String compact(PenaltyAttempt attempt) {
+        return "Rodada " + attempt.round() + " · " + result(attempt) + "\n"
+                + attempt.shooter().name() + " (" + attempt.attackingTeam() + ")\n"
+                + "Goleiro: " + side(attempt.goalkeeperSide());
+    }
+
     static String result(PenaltyAttempt attempt) {
         if (attempt.result() == ShotResult.GOAL) {
             return "GOL";

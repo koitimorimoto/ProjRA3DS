@@ -6,6 +6,7 @@ import com.example.projra3ds.game.GoalkeeperSide;
 import com.example.projra3ds.game.PenaltyAttempt;
 import com.example.projra3ds.game.PenaltyMatchEngine;
 import com.example.projra3ds.game.PlayerSnapshot;
+import com.example.projra3ds.game.PowerTiming;
 import com.example.projra3ds.game.ShotPhysics;
 import com.example.projra3ds.game.TeamSnapshot;
 import com.example.projra3ds.model.Player;
@@ -21,12 +22,15 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Control;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
-import javafx.scene.control.ProgressBar;
-import javafx.scene.control.Slider;
+import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
 import javafx.util.Duration;
 
 import java.util.List;
@@ -42,7 +46,9 @@ public class MatchController {
             if (previousFrame != 0 && aimTiming != null) {
                 double elapsed = Math.min((now - previousFrame) / 1_000_000_000.0, 0.1);
                 aimTiming.advance(elapsed);
-                updateAimMeters();
+                if (aimTiming.isComplete() && powerTiming != null) {
+                    powerTiming.advance(elapsed);
+                }
                 drawGoal();
             }
             previousFrame = now;
@@ -56,6 +62,7 @@ public class MatchController {
     };
     private PenaltyMatchEngine match;
     private AimTiming aimTiming;
+    private PowerTiming powerTiming;
     private PenaltyAttempt lastAttempt;
     private GoalkeeperSide selectedDive;
     private boolean animating;
@@ -74,17 +81,13 @@ public class MatchController {
     @FXML
     private Label statusLabel;
     @FXML
+    private Pane canvasPane;
+    @FXML
     private Canvas goalCanvas;
-    @FXML
-    private ProgressBar aimXBar;
-    @FXML
-    private ProgressBar aimYBar;
     @FXML
     private Button lockAimButton;
     @FXML
-    private Slider powerSlider;
-    @FXML
-    private Button shootButton;
+    private Canvas powerCanvas;
     @FXML
     private Button diveLeftButton;
     @FXML
@@ -97,6 +100,23 @@ public class MatchController {
     @FXML
     private void initialize() {
         matchRenderer = new MatchCanvasRenderer(goalCanvas);
+        // O campo ocupa 80% da largura; o canvas acompanha a largura do painel e é redesenhado.
+        goalCanvas.widthProperty().bind(canvasPane.widthProperty());
+        goalCanvas.widthProperty().addListener((observable, oldValue, newValue) -> drawGoal());
+        // A lista ocupa só 20% da largura, então cada cobrança quebra em linhas.
+        attemptList.setCellFactory(list -> new ListCell<>() {
+            {
+                setWrapText(true);
+                setMaxWidth(Control.USE_PREF_SIZE);
+                prefWidthProperty().bind(list.widthProperty().subtract(24));
+            }
+
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty ? null : item);
+            }
+        });
         userTeamCombo.setCellFactory(list -> ControllerUi.teamCell());
         userTeamCombo.setButtonCell(ControllerUi.teamCell());
         cpuTeamCombo.setCellFactory(list -> ControllerUi.teamCell());
@@ -178,6 +198,7 @@ public class MatchController {
         aimTimer.stop();
         match = null;
         aimTiming = null;
+        powerTiming = null;
         lastAttempt = null;
         selectedDive = null;
         animating = false;
@@ -189,7 +210,6 @@ public class MatchController {
         drawGoal();
     }
 
-    @FXML
     private void shoot() {
         if (match == null || animating || match.isFinished()) {
             return;
@@ -199,8 +219,9 @@ public class MatchController {
             statusLabel.setText("Escolha defender à esquerda, no meio ou à direita.");
             return;
         }
-        if (userAttacking && (aimTiming == null || !aimTiming.isComplete())) {
-            statusLabel.setText("Fixe as coordenadas horizontal e vertical antes de cobrar.");
+        if (userAttacking && (aimTiming == null || !aimTiming.isComplete()
+                || powerTiming == null || !powerTiming.isLocked())) {
+            statusLabel.setText("Fixe a mira horizontal, a vertical e a força antes de cobrar.");
             return;
         }
 
@@ -208,7 +229,7 @@ public class MatchController {
             aimTimer.stop();
             PenaltyAttempt attempt = userAttacking
                     ? match.resolveNextAttempt(aimTiming.getX() * 2 - 1, aimTiming.getY(),
-                    powerSlider.getValue(), null)
+                    powerTiming.getPower(), null, !powerTiming.isInZone())
                     : match.resolveNextAttempt(null, null, null, selectedDive);
             selectedDive = null;
             lastAttempt = attempt;
@@ -240,22 +261,35 @@ public class MatchController {
         selectDive(GoalkeeperSide.CENTER);
     }
 
+    /**
+     * Botão único da cobrança: o 1º clique fixa o eixo X, o 2º fixa o eixo Y e o 3º fixa a
+     * força e já executa o chute.
+     */
     @FXML
     private void lockAim() {
-        if (aimTiming == null || aimTiming.isComplete()) {
+        if (match == null || animating || aimTiming == null) {
             return;
         }
-        boolean lockingX = aimTiming.isXActive();
-        aimTiming.lockCurrentAxis();
-        updateAimMeters();
-        if (aimTiming.isComplete()) {
-            statusLabel.setText("Mira definida. Ajuste a força e clique em Cobrar.");
-        } else {
-            statusLabel.setText(lockingX
-                    ? "Eixo X fixado. Agora a mira vertical está se movendo."
-                    : "Eixo Y fixado. Mira completa.");
+        if (!aimTiming.isComplete()) {
+            boolean lockingX = aimTiming.isXActive();
+            aimTiming.lockCurrentAxis();
+            if (aimTiming.isComplete()) {
+                statusLabel.setText("Eixo Y fixado. Agora pare a barra de força no meio (zona verde).");
+            } else {
+                statusLabel.setText(lockingX
+                        ? "Eixo X fixado. Agora a mira vertical está se movendo."
+                        : "Eixo Y fixado.");
+            }
+            updateControls();
+            return;
         }
-        updateControls();
+        if (powerTiming != null && !powerTiming.isLocked()) {
+            powerTiming.lock();
+            if (!powerTiming.isInZone()) {
+                statusLabel.setText("Você errou a zona verde da força: o chute vai para fora!");
+            }
+            shoot();
+        }
     }
 
     private void saveFinishedMatch() {
@@ -339,20 +373,18 @@ public class MatchController {
         boolean running = match != null && !match.isFinished() && !animating;
         boolean userAttacking = running && match.getNextAttackingTeamIndex() == 0;
         boolean userDefending = running && match.getNextAttackingTeamIndex() == 1;
-        aimXBar.setDisable(!userAttacking);
-        aimYBar.setDisable(!userAttacking);
-        powerSlider.setDisable(!userAttacking);
-        lockAimButton.setDisable(!userAttacking || aimTiming == null || aimTiming.isComplete());
-        if (aimTiming == null || aimTiming.isComplete()) {
+        boolean powerLocked = powerTiming != null && powerTiming.isLocked();
+        powerCanvas.setOpacity(userAttacking ? 1.0 : 0.45);
+        lockAimButton.setDisable(!userAttacking || aimTiming == null || powerLocked);
+        if (aimTiming == null) {
             lockAimButton.setText("Fixar mira");
+        } else if (aimTiming.isXActive()) {
+            lockAimButton.setText("Fixar X");
+        } else if (aimTiming.isYActive()) {
+            lockAimButton.setText("Fixar Y");
         } else {
-            lockAimButton.setText(aimTiming.isXActive() ? "Fixar X" : "Fixar Y");
+            lockAimButton.setText("Fixar força e cobrar");
         }
-        aimXBar.setStyle(aimTiming != null && aimTiming.isXActive()
-                ? "-fx-accent: #ffca28;" : "-fx-accent: #78909c;");
-        aimYBar.setStyle(aimTiming != null && aimTiming.isYActive()
-                ? "-fx-accent: #ffca28;" : "-fx-accent: #78909c;");
-        shootButton.setDisable(!userAttacking || aimTiming == null || !aimTiming.isComplete());
         diveLeftButton.setDisable(!userDefending || animating);
         diveCenterButton.setDisable(!userDefending || animating);
         diveRightButton.setDisable(!userDefending || animating);
@@ -362,21 +394,15 @@ public class MatchController {
     private void startAimTiming() {
         if (match == null || match.isFinished() || match.getNextAttackingTeamIndex() != 0) {
             aimTiming = null;
+            powerTiming = null;
             aimTimer.stop();
             updateControls();
             return;
         }
-        aimTiming = new AimTiming(match.getNextShooter().finishing());
-        updateAimMeters();
+        int finishing = match.getNextShooter().finishing();
+        aimTiming = new AimTiming(finishing);
+        powerTiming = new PowerTiming(finishing);
         aimTimer.start();
-    }
-
-    private void updateAimMeters() {
-        if (aimTiming == null) {
-            return;
-        }
-        aimXBar.setProgress(aimTiming.getX());
-        aimYBar.setProgress(aimTiming.getY());
     }
 
     private void updateScore() {
@@ -394,10 +420,33 @@ public class MatchController {
         if (matchRenderer != null) {
             matchRenderer.draw(match, aimTiming, lastAttempt, animationProgress.get());
         }
+        drawPowerBar();
+    }
+
+    /** Barra de força: fundo cinza, zona central verde e o marcador em movimento. */
+    private void drawPowerBar() {
+        GraphicsContext graphics = powerCanvas.getGraphicsContext2D();
+        double width = powerCanvas.getWidth();
+        double height = powerCanvas.getHeight();
+        double zoneWidth = powerTiming == null ? 0.3 : powerTiming.getZoneWidth();
+        graphics.clearRect(0, 0, width, height);
+        graphics.setFill(Color.web("#cfd8dc"));
+        graphics.fillRect(0, 0, width, height);
+        graphics.setFill(Color.web("#66bb6a"));
+        graphics.fillRect(width * (0.5 - zoneWidth / 2), 0, width * zoneWidth, height);
+        graphics.setStroke(Color.web("#455a64"));
+        graphics.setLineWidth(2);
+        graphics.strokeRect(1, 1, width - 2, height - 2);
+        if (powerTiming != null) {
+            double markerX = width * powerTiming.getPosition();
+            graphics.setStroke(powerTiming.isLocked() ? Color.web("#c62828") : Color.web("#212121"));
+            graphics.setLineWidth(5);
+            graphics.strokeLine(markerX, 0, markerX, height);
+        }
     }
 
     private String formatAttempt(PenaltyAttempt attempt) {
-        return AttemptText.describe(attempt);
+        return AttemptText.compact(attempt);
     }
 
     private String resultMessage(PenaltyAttempt attempt) {

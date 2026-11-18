@@ -97,6 +97,16 @@ public final class PenaltyMatchEngine {
 
     public PenaltyAttempt resolveNextAttempt(Double aimedX, Double aimedY, Double power,
                                              GoalkeeperSide goalkeeperSide) {
+        return resolveNextAttempt(aimedX, aimedY, power, goalkeeperSide, false);
+    }
+
+    /**
+     * @param badStrike quando verdadeiro (o batedor errou a zona da barra de força), a bola sai
+     *                  bem para fora do gol, passando por cima do travessão, e a cobrança
+     *                  termina como {@link ShotResult#OUT}, sem chance de gol ou defesa.
+     */
+    public PenaltyAttempt resolveNextAttempt(Double aimedX, Double aimedY, Double power,
+                                             GoalkeeperSide goalkeeperSide, boolean badStrike) {
         if (finished) {
             throw new IllegalStateException("A disputa já terminou.");
         }
@@ -121,10 +131,20 @@ public final class PenaltyMatchEngine {
         PlayerSnapshot shooter = getNextShooter();
         PlayerSnapshot goalkeeper = defendingTeam.goalkeeper();
         double precisionRange = 0.035 + (100 - shooter.finishing()) * 0.002;
-        double ballX = targetX + random.nextDouble(-precisionRange, precisionRange);
-        double ballY = targetY + random.nextDouble(-precisionRange, precisionRange);
-        ShotResult result = resolveShot(ballX, ballY, dive,
-                goalkeeper.goalkeeping(), shooter.finishing(), shotPower);
+        double ballX;
+        double ballY;
+        ShotResult result;
+        if (badStrike) {
+            double wideDirection = targetX >= 0 ? 1 : -1;
+            ballX = targetX + wideDirection * 0.35;
+            ballY = 1.3 + random.nextDouble(0.0, 0.3);
+            result = ShotResult.OUT;
+        } else {
+            ballX = targetX + random.nextDouble(-precisionRange, precisionRange);
+            ballY = targetY + random.nextDouble(-precisionRange, precisionRange);
+            result = resolveShot(ballX, ballY, dive,
+                    goalkeeper.goalkeeping(), shooter.finishing(), shotPower);
+        }
 
         int round = getNextRound();
         PenaltyAttempt attempt = new PenaltyAttempt(
