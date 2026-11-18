@@ -2,7 +2,9 @@ package com.example.projra3ds.controller;
 
 import com.example.projra3ds.model.Player;
 import com.example.projra3ds.model.Team;
+import javafx.scene.control.Control;
 import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
 
 import java.util.List;
 import java.util.Optional;
@@ -43,6 +45,22 @@ final class ControllerUi {
                 }
             }
         };
+    }
+
+    static void useWrappedCells(ListView<String> listView) {
+        listView.setCellFactory(list -> new ListCell<>() {
+            {
+                setWrapText(true);
+                setMaxWidth(Control.USE_PREF_SIZE);
+                prefWidthProperty().bind(list.widthProperty().subtract(24));
+            }
+
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty ? null : item);
+            }
+        });
     }
 
     static ListCell<Player> playerCell() {

@@ -18,12 +18,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Registro histórico de uma disputa de pênaltis encerrada. Agrega os retratos dos dois
- * times ({@link MatchTeam}, que por sua vez guardam {@link MatchPlayer}) e todas as
- * cobranças ({@link MatchAttempt}), de modo que a partida possa ser reprisada mesmo que
- * jogadores e times sejam editados ou excluídos depois.
- */
 @Entity
 @Table(name = "penalty_matches")
 public class PenaltyMatch {

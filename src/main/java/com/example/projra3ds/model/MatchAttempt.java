@@ -13,12 +13,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
-/**
- * Uma cobrança de pênalti de uma {@link PenaltyMatch}. Guarda tudo o que é necessário para
- * reproduzir a animação: mira, posição final da bola, força, lado escolhido pelo goleiro e
- * resultado. O batedor e o goleiro apontam para os retratos ({@link MatchPlayer}) da própria
- * partida, nunca para o cadastro atual de jogadores.
- */
 @Entity
 @Table(name = "match_attempts")
 public class MatchAttempt {

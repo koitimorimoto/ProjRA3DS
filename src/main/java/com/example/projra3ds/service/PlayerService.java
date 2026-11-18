@@ -29,10 +29,6 @@ public class PlayerService {
         this.transactions = transactions;
     }
 
-    public Player createPlayer(String name, int finishing, int goalkeeping, Long teamId) {
-        return createPlayer(name, finishing, goalkeeping, Player.DEFAULT_HEIGHT_METERS, teamId);
-    }
-
     public Player createPlayer(String name, int finishing, int goalkeeping,
                                double heightMeters, Long teamId) {
         String normalizedName = validateName(name);
@@ -46,10 +42,6 @@ public class PlayerService {
             playerRepository.save(entityManager, player);
             return player;
         });
-    }
-
-    public Player updatePlayer(Long id, String name, int finishing, int goalkeeping, Long teamId) {
-        return updatePlayer(id, name, finishing, goalkeeping, null, teamId);
     }
 
     public Player updatePlayer(Long id, String name, int finishing, int goalkeeping,

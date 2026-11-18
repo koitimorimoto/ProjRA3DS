@@ -26,18 +26,6 @@ public final class AimTiming {
         return y;
     }
 
-    public double getSpeed() {
-        return speed;
-    }
-
-    public boolean isXLocked() {
-        return xLocked;
-    }
-
-    public boolean isYLocked() {
-        return yLocked;
-    }
-
     public boolean isXActive() {
         return !xLocked;
     }

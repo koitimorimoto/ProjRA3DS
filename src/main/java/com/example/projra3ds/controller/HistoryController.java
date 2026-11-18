@@ -25,15 +25,12 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextInputDialog;
+import javafx.scene.layout.Pane;
 import javafx.util.Duration;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-/**
- * Aba "Histórico": lista as partidas salvas e permite reprisar a partida inteira ou uma
- * cobrança específica usando o mesmo renderizador da partida ao vivo.
- */
 public class HistoryController {
     private static final DateTimeFormatter DATE_FORMAT =
             DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
@@ -68,6 +65,8 @@ public class HistoryController {
     @FXML
     private Label statusLabel;
     @FXML
+    private Pane canvasPane;
+    @FXML
     private Canvas goalCanvas;
     @FXML
     private ListView<String> attemptList;
@@ -75,6 +74,9 @@ public class HistoryController {
     @FXML
     private void initialize() {
         renderer = new MatchCanvasRenderer(goalCanvas);
+        goalCanvas.widthProperty().bind(canvasPane.widthProperty());
+        goalCanvas.widthProperty().addListener((observable, oldValue, newValue) -> draw());
+        ControllerUi.useWrappedCells(attemptList);
         dateColumn.setCellValueFactory(cell -> new SimpleStringProperty(
                 cell.getValue().getPlayedAt().format(DATE_FORMAT)));
         titleColumn.setCellValueFactory(cell -> new SimpleStringProperty(
@@ -219,7 +221,7 @@ public class HistoryController {
             currentIndex = -1;
             animationProgress.set(1);
             attemptList.setItems(FXCollections.observableArrayList(
-                    replay.attempts().stream().map(AttemptText::describe).toList()));
+                    replay.attempts().stream().map(AttemptText::compact).toList()));
             scoreLabel.setText(selected.getUserTeamName() + " 0 × 0 " + selected.getCpuTeamName());
             statusLabel.setText("Partida carregada com " + replay.attempts().size()
                     + " cobranças. Use Reprisar partida ou clique em uma cobrança da lista.");
@@ -293,7 +295,6 @@ public class HistoryController {
         }
     }
 
-    /** Atualiza o placar considerando as cobranças de 0 até {@code lastIndex}, inclusive. */
     private void updateScore(int lastIndex) {
         if (replay == null) {
             return;

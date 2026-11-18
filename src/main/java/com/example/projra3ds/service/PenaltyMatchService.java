@@ -16,10 +16,6 @@ import com.example.projra3ds.repository.PenaltyMatchRepository;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Histórico de partidas: salva uma disputa encerrada como retratos imutáveis (times,
- * jogadores e cobranças) e permite listar, reprisar, renomear e excluir.
- */
 public class PenaltyMatchService {
     private final PenaltyMatchRepository matchRepository;
     private final JpaTransactions transactions;
@@ -72,7 +68,6 @@ public class PenaltyMatchService {
         });
     }
 
-    // --- conversão motor -> entidades ---------------------------------------------------
 
     PenaltyMatch buildMatch(PenaltyMatchEngine engine) {
         if (!engine.isFinished()) {
@@ -91,8 +86,6 @@ public class PenaltyMatchService {
             MatchTeam shooterTeam = shooterSide == MatchSide.USER ? userTeam : cpuTeam;
             MatchTeam keeperTeam = shooterSide == MatchSide.USER ? cpuTeam : userTeam;
 
-            // O motor escolhe o batedor pela posição (cobranças já feitas pelo time) módulo
-            // o tamanho da lista, então a mesma regra identifica a linha do retrato.
             List<MatchPlayer> slots = shooterTeam.getBatterSlots();
             MatchPlayer shooter = slots.get(shotsTaken[shooterSide.ordinal()]++ % slots.size());
             MatchPlayer goalkeeper = keeperTeam.getGoalkeeperPlayer();
@@ -125,7 +118,6 @@ public class PenaltyMatchService {
         return team;
     }
 
-    // --- conversão entidades -> motor ---------------------------------------------------
 
     private MatchReplay toReplay(PenaltyMatch match) {
         MatchTeam userTeam = match.getTeam(MatchSide.USER);

@@ -100,11 +100,6 @@ public final class PenaltyMatchEngine {
         return resolveNextAttempt(aimedX, aimedY, power, goalkeeperSide, false);
     }
 
-    /**
-     * @param badStrike quando verdadeiro (o batedor errou a zona da barra de força), a bola sai
-     *                  bem para fora do gol, passando por cima do travessão, e a cobrança
-     *                  termina como {@link ShotResult#OUT}, sem chance de gol ou defesa.
-     */
     public PenaltyAttempt resolveNextAttempt(Double aimedX, Double aimedY, Double power,
                                              GoalkeeperSide goalkeeperSide, boolean badStrike) {
         if (finished) {

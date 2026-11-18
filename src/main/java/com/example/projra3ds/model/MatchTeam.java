@@ -18,11 +18,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-/**
- * Retrato de um {@link Team} no instante da partida. Não tem chave estrangeira para
- * {@code teams}: guarda só o id original, para que editar ou excluir o time não altere
- * o histórico.
- */
 @Entity
 @Table(name = "match_teams")
 public class MatchTeam {
@@ -112,7 +107,6 @@ public class MatchTeam {
         players.add(player);
     }
 
-    /** Batedores na ordem de cobrança. */
     public List<MatchPlayer> getBatterSlots() {
         return players.stream()
                 .filter(player -> player.getBattingOrder() != null)

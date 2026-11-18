@@ -9,12 +9,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
-/**
- * Retrato de um {@link Player} no instante da partida (nome, habilidades e altura como
- * eram). Cada linha representa um papel: uma posição na ordem de batedores
- * ({@code battingOrder} preenchido) ou o goleiro ({@code goalkeeper = true}). Se o goleiro
- * também bate, ele aparece em duas linhas.
- */
 @Entity
 @Table(name = "match_players")
 public class MatchPlayer {

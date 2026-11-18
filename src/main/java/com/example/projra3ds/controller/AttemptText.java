@@ -4,7 +4,6 @@ import com.example.projra3ds.game.GoalkeeperSide;
 import com.example.projra3ds.game.PenaltyAttempt;
 import com.example.projra3ds.game.ShotResult;
 
-/** Textos de uma cobrança, compartilhados entre a tela da partida e a do histórico. */
 final class AttemptText {
     private AttemptText() {
     }
@@ -15,7 +14,6 @@ final class AttemptText {
                 + " · goleiro: " + side(attempt.goalkeeperSide());
     }
 
-    /** Versão em várias linhas, para a lista estreita da partida ao vivo. */
     static String compact(PenaltyAttempt attempt) {
         return "Rodada " + attempt.round() + " · " + result(attempt) + "\n"
                 + attempt.shooter().name() + " (" + attempt.attackingTeam() + ")\n"

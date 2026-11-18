@@ -71,16 +71,14 @@ A disputa segue cinco cobranças por time, com encerramento antecipado quando o 
 Na raiz do projeto, rode:
 
 ```bash
-./mvnw clean test
 ./mvnw javafx:run
 ```
 
-O primeiro comando compila e executa os testes das regras de negócio e da mecânica da partida sem conectar ao MySQL. O segundo inicia a interface e precisa de um `.env` válido e do MySQL em execução.
+O comando compila e inicia a interface; precisa de um `.env` válido e do MySQL em execução.
 
 No Windows, use o wrapper correspondente:
 
 ```bat
-mvnw.cmd clean test
 mvnw.cmd javafx:run
 ```
 

@@ -7,7 +7,11 @@
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
 <VBox xmlns="http://javafx.com/javafx/21"
@@ -40,7 +44,21 @@
     <HBox alignment="CENTER">
         <Label fx:id="scoreLabel" text="Placar: —" style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
     </HBox>
-    <Canvas fx:id="goalCanvas" width="900" height="390"/>
+    <GridPane hgap="12">
+        <columnConstraints>
+            <ColumnConstraints percentWidth="80"/>
+            <ColumnConstraints percentWidth="20"/>
+        </columnConstraints>
+        <rowConstraints>
+            <RowConstraints minHeight="390" prefHeight="390" maxHeight="390"/>
+        </rowConstraints>
+        <Pane fx:id="canvasPane" GridPane.columnIndex="0" GridPane.rowIndex="0">
+            <Canvas fx:id="goalCanvas" width="720" height="390"/>
+        </Pane>
+        <VBox spacing="4" GridPane.columnIndex="1" GridPane.rowIndex="0">
+            <Label text="Cobranças"/>
+            <ListView fx:id="attemptList" VBox.vgrow="ALWAYS"/>
+        </VBox>
+    </GridPane>
     <Label fx:id="statusLabel" text="Selecione uma partida salva." wrapText="true"/>
-    <ListView fx:id="attemptList" prefHeight="70" VBox.vgrow="ALWAYS"/>
 </VBox>

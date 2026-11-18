@@ -10,10 +10,6 @@ public final class ShotPhysics {
     private ShotPhysics() {
     }
 
-    public static double ballFlightSeconds(double power) {
-        return ballFlightSeconds(50, power);
-    }
-
     public static double ballFlightSeconds(int finishing, double power) {
         if (finishing < 0 || finishing > 100) {
             throw new IllegalArgumentException("Finalização deve estar entre 0 e 100.");
@@ -46,11 +42,6 @@ public final class ShotPhysics {
         };
         double distance = goalkeeperSpeed(skill) * flightSeconds;
         return Math.copySign(Math.min(Math.abs(targetX), distance), targetX);
-    }
-
-    public static boolean canSave(double x, double y, GoalkeeperSide side,
-                                  int goalkeeperSkill, double power) {
-        return canSave(x, y, side, goalkeeperSkill, 50, power);
     }
 
     public static boolean canSave(double x, double y, GoalkeeperSide side,

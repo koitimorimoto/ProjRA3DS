@@ -12,7 +12,6 @@ public class PenaltyMatchRepository {
         return Optional.ofNullable(entityManager.find(PenaltyMatch.class, id));
     }
 
-    /** Busca a partida já com todas as cobranças carregadas. */
     public Optional<PenaltyMatch> findWithAttempts(EntityManager entityManager, Long id) {
         List<PenaltyMatch> matches = entityManager.createQuery(
                         "SELECT DISTINCT m FROM PenaltyMatch m "
@@ -36,8 +35,6 @@ public class PenaltyMatchRepository {
     }
 
     public void delete(EntityManager entityManager, PenaltyMatch match) {
-        // As cobranças referenciam os jogadores da partida; removê-las primeiro mantém a
-        // ordem correta de exclusão no banco.
         new ArrayList<>(match.getAttempts()).forEach(entityManager::remove);
         match.getAttempts().clear();
         entityManager.flush();

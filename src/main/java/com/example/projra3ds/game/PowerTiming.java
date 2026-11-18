@@ -1,14 +1,5 @@
 package com.example.projra3ds.game;
 
-/**
- * Barra de força: um marcador vai e volta entre 0 e 1. O objetivo é fixá-lo na zona central.
- *
- * <p>Quanto maior a finalização do batedor, mais lento o marcador e maior a zona central
- * (10% da barra com finalização 0 e 50% com finalização 100, sempre centralizada). Fixar o
- * marcador dentro da zona dá o chute com força máxima (1,0); fixá-lo fora dela é um chute
- * errado, que o motor da partida resolve como bola para fora. Nesse caso {@link #getPower()}
- * ainda devolve uma força menor (até 0 nas extremidades), usada só no tempo de voo da bola.
- */
 public final class PowerTiming {
     private static final double SLOW_MOTION_FACTOR = 0.5;
     private static final double MIN_ZONE_WIDTH = 0.10;
@@ -28,16 +19,10 @@ public final class PowerTiming {
         zoneWidth = MIN_ZONE_WIDTH + (MAX_ZONE_WIDTH - MIN_ZONE_WIDTH) * finishing / 100.0;
     }
 
-    /** Posição do marcador, de 0 a 1. */
     public double getPosition() {
         return position;
     }
 
-    public double getSpeed() {
-        return speed;
-    }
-
-    /** Largura da zona central, como fração da barra (0,10 a 0,50). */
     public double getZoneWidth() {
         return zoneWidth;
     }
@@ -74,7 +59,6 @@ public final class PowerTiming {
         locked = true;
     }
 
-    /** Força resultante (0 a 1) para a posição atual do marcador. */
     public double getPower() {
         double halfZone = zoneWidth / 2;
         double distance = Math.abs(position - 0.5);

@@ -25,9 +25,7 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.Control;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
@@ -100,23 +98,9 @@ public class MatchController {
     @FXML
     private void initialize() {
         matchRenderer = new MatchCanvasRenderer(goalCanvas);
-        // O campo ocupa 80% da largura; o canvas acompanha a largura do painel e é redesenhado.
         goalCanvas.widthProperty().bind(canvasPane.widthProperty());
         goalCanvas.widthProperty().addListener((observable, oldValue, newValue) -> drawGoal());
-        // A lista ocupa só 20% da largura, então cada cobrança quebra em linhas.
-        attemptList.setCellFactory(list -> new ListCell<>() {
-            {
-                setWrapText(true);
-                setMaxWidth(Control.USE_PREF_SIZE);
-                prefWidthProperty().bind(list.widthProperty().subtract(24));
-            }
-
-            @Override
-            protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(empty ? null : item);
-            }
-        });
+        ControllerUi.useWrappedCells(attemptList);
         userTeamCombo.setCellFactory(list -> ControllerUi.teamCell());
         userTeamCombo.setButtonCell(ControllerUi.teamCell());
         cpuTeamCombo.setCellFactory(list -> ControllerUi.teamCell());
@@ -261,10 +245,6 @@ public class MatchController {
         selectDive(GoalkeeperSide.CENTER);
     }
 
-    /**
-     * Botão único da cobrança: o 1º clique fixa o eixo X, o 2º fixa o eixo Y e o 3º fixa a
-     * força e já executa o chute.
-     */
     @FXML
     private void lockAim() {
         if (match == null || animating || aimTiming == null) {
@@ -423,7 +403,6 @@ public class MatchController {
         drawPowerBar();
     }
 
-    /** Barra de força: fundo cinza, zona central verde e o marcador em movimento. */
     private void drawPowerBar() {
         GraphicsContext graphics = powerCanvas.getGraphicsContext2D();
         double width = powerCanvas.getWidth();

@@ -6,10 +6,6 @@ import java.util.List;
 
 public record TeamSnapshot(Long id, String name, List<PlayerSnapshot> batters,
                            PlayerSnapshot goalkeeper, String goalkeeperColor, String batterColor) {
-    public TeamSnapshot(Long id, String name, List<PlayerSnapshot> batters, PlayerSnapshot goalkeeper) {
-        this(id, name, batters, goalkeeper, "#FFD54F", "#1565C0");
-    }
-
     public TeamSnapshot {
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("O time precisa ter nome.");

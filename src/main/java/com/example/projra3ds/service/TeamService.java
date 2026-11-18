@@ -28,10 +28,6 @@ public class TeamService {
         this.transactions = transactions;
     }
 
-    public Team createTeam(String name, String country) {
-        return createTeam(name, country, Team.DEFAULT_GOALKEEPER_COLOR, Team.DEFAULT_BATTER_COLOR);
-    }
-
     public Team createTeam(String name, String country, String goalkeeperColor, String batterColor) {
         String normalizedName = validateName(name);
         String normalizedCountry = normalizeCountry(country);
@@ -43,31 +39,19 @@ public class TeamService {
         });
     }
 
-    public Team updateTeam(Long id, String name, String country) {
-        String normalizedName = validateName(name);
-        String normalizedCountry = normalizeCountry(country);
-        return updateTeam(id, normalizedName, normalizedCountry, null);
-    }
-
     public Team updateTeam(Long id, String name, String country,
                            String goalkeeperColor, String batterColor) {
         String normalizedName = validateName(name);
         String normalizedCountry = normalizeCountry(country);
         Team colors = new Team(normalizedName, normalizedCountry, goalkeeperColor, batterColor);
-        return updateTeam(id, normalizedName, normalizedCountry, colors);
-    }
-
-    private Team updateTeam(Long id, String normalizedName, String normalizedCountry, Team colors) {
         return transactions.write(entityManager -> {
             Team team = teamRepository.findById(entityManager, id)
                     .orElseThrow(() -> new IllegalArgumentException("Time não encontrado."));
             ensureNameIsAvailable(normalizedName, id, entityManager);
             team.setName(normalizedName);
             team.setCountry(normalizedCountry);
-            if (colors != null) {
-                team.setGoalkeeperColor(colors.getGoalkeeperColor());
-                team.setBatterColor(colors.getBatterColor());
-            }
+            team.setGoalkeeperColor(colors.getGoalkeeperColor());
+            team.setBatterColor(colors.getBatterColor());
             return team;
         });
     }
