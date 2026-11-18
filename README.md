@@ -64,7 +64,7 @@ O banco configurado é `simulador_penaltis`. Se o banco ainda não existir, o Co
 4. Na aba **Partida**, escolha seu time e o time da CPU e clique em **Iniciar partida**.
 5. Na sua cobrança, o campo aparece em uma área maior, com o gol ao fundo e a bola mais distante; os marcadores dos jogadores mudam de tamanho proporcionalmente à altura informada, usando um gol de 2,50 m como referência e ficando apoiados pelos pés. O marcador do cobrador avança até a bola antes do chute. O eixo X se move primeiro. Clique em **Fixar X** no momento desejado; então o eixo Y começa a se mover, e o mesmo botão fixa Y. Maior Finalização deixa o movimento da mira mais lento e a bola mais rápida. Ajuste a força e clique em **Cobrar**: mais força também aumenta a velocidade da bola e reduz o tempo de reação do goleiro. Finalização e força afetam o tempo de voo; o nível de Goleiro determina a velocidade com que o goleiro se desloca para defender e também seu alcance. Na cobrança da CPU, escolha **Defender à esquerda**, **Defender no meio** ou **Defender à direita**. Cada equipe usa suas próprias cores: a cor do papel de goleiro ou de batedor, inclusive quando o goleiro cobra.
 
-A disputa segue cinco cobranças por time, com encerramento antecipado quando o adversário não puder mais alcançar o placar; se empatar, continua em morte súbita. A ordem dos cobradores reinicia e se repete se um time tiver menos de cinco jogadores na lista. O andamento e os dados de cada cobrança ficam visíveis na partida atual; histórico persistente de partidas/replay será uma etapa posterior.
+A disputa segue cinco cobranças por time, com encerramento antecipado quando o adversário não puder mais alcançar o placar; se empatar, continua em morte súbita. A ordem dos cobradores reinicia e se repete se um time tiver menos de cinco jogadores na lista. O andamento e os dados de cada cobrança ficam visíveis na partida atual. Ao terminar, a partida é salva automaticamente no banco, junto com os times, jogadores (nome, habilidades e altura como eram naquele momento) e todas as cobranças. Na aba **Histórico** é possível ver todas as partidas, reprisar a disputa inteira ou uma cobrança específica, renomear e excluir. Editar ou excluir jogadores e times depois não altera as partidas salvas.
 
 ## Executar pelo terminal
 
@@ -103,7 +103,7 @@ Como alternativa à leitura do `.env`, é possível definir `PENALTY_DB_USER` e 
 
 ## Organização do código
 
-- `model`: entidades JPA `Player` e `Team`
+- `model`: entidades JPA `Player`, `Team` e `TeamLineup` (cadastro) e `PenaltyMatch`, `MatchTeam`, `MatchPlayer` e `MatchAttempt` (histórico de partidas, com retratos imutáveis de times, jogadores e cobranças)
 - `controller`: controllers JavaFX do MVC e renderizador visual da partida
 - `src/main/resources/com/example/projra3ds`: Views FXML
 - `game`: motor independente da interface e registros de cada cobrança

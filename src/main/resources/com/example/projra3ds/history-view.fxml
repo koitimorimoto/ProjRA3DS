@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.canvas.Canvas?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/21"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.example.projra3ds.controller.HistoryController"
+      spacing="8">
+    <padding>
+        <Insets top="12" right="16" bottom="12" left="16"/>
+    </padding>
+    <Label text="Partidas salvas. Selecione uma para ver as cobranças e reprisar."/>
+    <TableView fx:id="matchTable" prefHeight="110" minHeight="90">
+        <columns>
+            <TableColumn fx:id="dateColumn" text="Data" prefWidth="140"/>
+            <TableColumn fx:id="titleColumn" text="Título" prefWidth="170"/>
+            <TableColumn fx:id="userTeamColumn" text="Seu time" prefWidth="170"/>
+            <TableColumn fx:id="scoreColumn" text="Placar" prefWidth="80"/>
+            <TableColumn fx:id="cpuTeamColumn" text="CPU" prefWidth="170"/>
+            <TableColumn fx:id="winnerColumn" text="Vencedor" prefWidth="170"/>
+        </columns>
+    </TableView>
+    <HBox spacing="8" alignment="CENTER_LEFT">
+        <Button text="Reprisar partida" onAction="#replayAll"/>
+        <Button text="Parar" onAction="#stopReplay"/>
+        <Button text="Cobrança anterior" onAction="#previousAttempt"/>
+        <Button text="Próxima cobrança" onAction="#nextAttempt"/>
+        <Button text="Renomear" onAction="#renameMatch"/>
+        <Button text="Excluir" onAction="#deleteMatch"/>
+        <Button text="Atualizar" onAction="#refresh"/>
+    </HBox>
+    <HBox alignment="CENTER">
+        <Label fx:id="scoreLabel" text="Placar: —" style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
+    </HBox>
+    <Canvas fx:id="goalCanvas" width="900" height="390"/>
+    <Label fx:id="statusLabel" text="Selecione uma partida salva." wrapText="true"/>
+    <ListView fx:id="attemptList" prefHeight="70" VBox.vgrow="ALWAYS"/>
+</VBox>

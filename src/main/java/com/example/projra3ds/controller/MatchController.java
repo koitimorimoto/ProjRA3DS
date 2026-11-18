@@ -7,7 +7,6 @@ import com.example.projra3ds.game.PenaltyAttempt;
 import com.example.projra3ds.game.PenaltyMatchEngine;
 import com.example.projra3ds.game.PlayerSnapshot;
 import com.example.projra3ds.game.ShotPhysics;
-import com.example.projra3ds.game.ShotResult;
 import com.example.projra3ds.game.TeamSnapshot;
 import com.example.projra3ds.model.Player;
 import com.example.projra3ds.model.Team;
@@ -60,6 +59,8 @@ public class MatchController {
     private PenaltyAttempt lastAttempt;
     private GoalkeeperSide selectedDive;
     private boolean animating;
+    private boolean matchSaved;
+    private String saveError;
     private MatchCanvasRenderer matchRenderer;
 
     @FXML
@@ -153,6 +154,8 @@ public class MatchController {
             TeamSnapshot userSnapshot = createSnapshot(userTeam);
             TeamSnapshot cpuSnapshot = createSnapshot(cpuTeam);
             match = new PenaltyMatchEngine(userSnapshot, cpuSnapshot);
+            matchSaved = false;
+            saveError = null;
             lastAttempt = null;
             selectedDive = null;
             animating = false;
@@ -209,6 +212,9 @@ public class MatchController {
                     : match.resolveNextAttempt(null, null, null, selectedDive);
             selectedDive = null;
             lastAttempt = attempt;
+            if (match.isFinished()) {
+                saveFinishedMatch();
+            }
             animationProgress.set(0);
             attemptList.getItems().add(formatAttempt(attempt));
             updateScore();
@@ -250,6 +256,17 @@ public class MatchController {
                     : "Eixo Y fixado. Mira completa.");
         }
         updateControls();
+    }
+
+    private void saveFinishedMatch() {
+        try {
+            facade.saveMatch(match);
+            matchSaved = true;
+            saveError = null;
+        } catch (IllegalArgumentException | IllegalStateException | PersistenceException exception) {
+            matchSaved = false;
+            saveError = exception.getMessage();
+        }
     }
 
     private TeamSnapshot createSnapshot(Team team) {
@@ -299,7 +316,9 @@ public class MatchController {
         timeline.setOnFinished(event -> {
             animating = false;
             if (match.isFinished()) {
-                statusLabel.setText("Fim de jogo! " + match.getWinnerName() + " venceu.");
+                statusLabel.setText("Fim de jogo! " + match.getWinnerName() + " venceu. "
+                        + (matchSaved ? "Partida salva no histórico."
+                        : "Não foi possível salvar no histórico: " + saveError));
             } else {
                 statusLabel.setText(resultMessage(lastAttempt) + " Próxima cobrança: "
                         + match.getNextShooter().name() + " (" + match.getNextAttackingTeam().name() + "). "
@@ -378,27 +397,11 @@ public class MatchController {
     }
 
     private String formatAttempt(PenaltyAttempt attempt) {
-        return "Rodada " + attempt.round() + " · " + attempt.attackingTeam() + " · "
-                + attempt.shooter().name() + " · " + resultMessage(attempt)
-                + " · goleiro: " + sideName(attempt.goalkeeperSide());
+        return AttemptText.describe(attempt);
     }
 
     private String resultMessage(PenaltyAttempt attempt) {
-        if (attempt.result() == ShotResult.GOAL) {
-            return "GOL";
-        }
-        if (attempt.result() == ShotResult.SAVED) {
-            return "DEFENDIDO";
-        }
-        return "PARA FORA";
-    }
-
-    private String sideName(GoalkeeperSide side) {
-        return switch (side) {
-            case LEFT -> "esquerda";
-            case CENTER -> "meio";
-            case RIGHT -> "direita";
-        };
+        return AttemptText.result(attempt);
     }
 
     private String divePhrase(GoalkeeperSide side) {

@@ -21,5 +21,8 @@
         <Tab fx:id="matchTab" text="Partida">
             <fx:include fx:id="matchView" source="match-view.fxml"/>
         </Tab>
+        <Tab fx:id="historyTab" text="Histórico">
+            <fx:include fx:id="historyView" source="history-view.fxml"/>
+        </Tab>
     </tabs>
 </TabPane>

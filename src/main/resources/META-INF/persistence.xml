@@ -8,6 +8,10 @@
         <class>com.example.projra3ds.model.Player</class>
         <class>com.example.projra3ds.model.Team</class>
         <class>com.example.projra3ds.model.TeamLineup</class>
+        <class>com.example.projra3ds.model.PenaltyMatch</class>
+        <class>com.example.projra3ds.model.MatchTeam</class>
+        <class>com.example.projra3ds.model.MatchPlayer</class>
+        <class>com.example.projra3ds.model.MatchAttempt</class>
         <exclude-unlisted-classes>true</exclude-unlisted-classes>
         <properties>
             <property name="jakarta.persistence.jdbc.driver" value="com.mysql.cj.jdbc.Driver"/>
